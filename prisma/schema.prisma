@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("jamaah") // admin | pengurus | jamaah
+  password      String?
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model JadwalShalat {
+  id        String   @id @default(cuid())
+  tanggal   DateTime
+  lokasi    String   // nama kota/kabupaten
+  provinsi  String?
+  imsak     String
+  subuh     String
+  terbit    String?
+  dhuha     String?
+  zuhur     String
+  ashar     String
+  maghrib   String
+  isya      String
+  /// Asal baris ini: hisab (hasil hitung), aladhan (API), manual (disunting admin).
+  /// Baris "manual" tidak pernah ditimpa perhitungan otomatis.
+  sumber    String   @default("hisab")
+  createdAt DateTime @default(now())
+
+  @@unique([tanggal, lokasi])
+  @@map("jadwal_shalat")
+}
+
+model Khutbah {
+  id          String   @id @default(cuid())
+  tanggal     DateTime
+  tema        String
+  penceramah  String
+ lokasi      String?
+  createdAt   DateTime @default(now())
+
+  @@map("khutbah")
+}
+
+model Kegiatan {
+  id          String   @id @default(cuid())
+  nama        String
+  deskripsi   String?
+  tanggalMulai DateTime
+  tanggalSelesai DateTime?
+  lokasi      String?
+  gambar      String?
+  createdAt   DateTime @default(now())
+
+  @@map("kegiatan")
+}
+
+model Agenda {
+  id          String   @id @default(cuid())
+  nama        String
+  tanggal     DateTime
+  waktu       String?
+  lokasi      String?
+  deskripsi   String?
+  createdAt   DateTime @default(now())
+
+  @@map("agenda")
+}
+
+model Ustadz {
+  id          String   @id @default(cuid())
+  nama        String
+  spesialisasi String?
+  bio         String?
+  foto        String?
+  createdAt   DateTime @default(now())
+
+  @@map("ustadz")
+}
+
+model Pengurus {
+  id          String   @id @default(cuid())
+  nama        String
+  jabatan     String
+  foto        String?
+  urutan      Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("pengurus")
+}
+
+model Berita {
+  id          String   @id @default(cuid())
+  judul       String
+  isi         String
+  gambar      String?
+  kategori    String   @default("berita") // berita | pengumuman
+  published   Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@map("berita")
+}
+
+model ProfilMasjid {
+  id          String   @id @default(cuid())
+  /// Nama masjid/mushola yang dikelola. Bebas diganti pengelola.
+  nama        String   @default("Masjid Raya Pro")
+  deskripsi   String?
+  visi        String?
+  misi        String?
+  sejarah     String?
+  alamat      String?
+  kontak      String?
+  email       String?
+  /// Logo masjid (hasil unggahan atau tautan https).
+  logo        String?
+  /// Favicon masjid; bila kosong dipakai logo.
+  favicon     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("profil_masjid")
+}
+
+model Pengaturan {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@map("pengaturan")
+}
+
+/// Satu baris buku kas masjid: pemasukan (infaq, zakat, donasi) atau
+/// pengeluaran (operasional, pembangunan). `jumlah` selalu positif; arahnya
+/// ditentukan oleh `jenis`, sehingga rekap cukup menjumlahkan per jenis.
+model KasTransaksi {
+  id         String   @id @default(cuid())
+  tanggal    DateTime
+  /// "masuk" atau "keluar".
+  jenis      String
+  /// Pos/kategori bebas, mis. "Infaq Jumat", "Listrik & air".
+  kategori   String?
+  keterangan String
+  /// Nilai rupiah penuh (tanpa sen), selalu positif.
+  jumlah     Int
+  createdAt  DateTime @default(now())
+
+  @@index([tanggal])
+  @@map("kas_transaksi")
+}
+
+/// Foto galeri masjid. `gambar` wajib karena item galeri tanpa foto tidak
+/// bermakna.
+model Galeri {
+  id        String   @id @default(cuid())
+  judul     String
+  deskripsi String?
+  gambar    String
+  /// Urutan tampil (kecil lebih dahulu); seri dipecah oleh createdAt.
+  urutan    Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("galeri")
+}
+
+/// Jadwal petugas ibadah mingguan (imam, khatib, bilal, muadzin). Satu baris
+/// adalah satu tugas pada satu tanggal; tampilan mengelompokkannya per pekan.
+model PetugasJadwal {
+  id         String   @id @default(cuid())
+  tanggal    DateTime
+  /// "imam" | "khatib" | "bilal" | "muadzin".
+  peran      String
+  nama       String
+  keterangan String?
+  createdAt  DateTime @default(now())
+
+  @@index([tanggal])
+  @@map("petugas_jadwal")
+}

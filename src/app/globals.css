@@ -1,0 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Scheherazade+New:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* Nilai dasar yang dipakai langsung oleh CSS tulis-tangan di bawah. */
+:root {
+  --paper: #f4faf6;
+  --ink: #07231a;
+}
+
+/*
+  Palet: kertas hangat + hijau zamrud tua + aksen kuningan.
+  Nilai ini dipakai halaman terang (beranda papan informasi). Halaman lain tetap
+  memakai latar gelap lewat wrapper-nya masing-masing.
+*/
+@theme inline {
+  --color-background: #f4faf6;
+  --color-foreground: #07231a;
+
+  --color-paper: #f4faf6;
+  --color-paper-100: #e8f5ed;
+  --color-paper-200: #d5ecdf;
+
+  --color-ink: #07231a;
+  --color-ink-500: #3b5a4b;
+  --color-ink-400: #5f8271;
+
+  /* Skala hijau zamrud yang lebih hidup agar tetap cerah di layar TV besar. */
+  --color-forest-50: #eafaf1;
+  --color-forest-100: #cdf2dd;
+  --color-forest-200: #9fe4c0;
+  --color-forest-300: #6dd3a1;
+  --color-forest-400: #34bd7f;
+  --color-forest-500: #12a066;
+  --color-forest-600: #0b8353;
+  --color-forest-700: #0a6742;
+  --color-forest-800: #0a4f33;
+  --color-forest-900: #083c28;
+  --color-forest-950: #04261a;
+
+  /* Aksen mint bercahaya untuk sorotan di papan informasi. */
+  --color-mint: #7ff0b5;
+
+  --color-brass: #d9a441;
+  --color-brass-400: #ecc377;
+  --color-brass-600: #b07f22;
+
+  /* Token lama yang masih dipakai halaman bertema gelap. */
+  --color-emerald: #10b981;
+  --color-emerald-dark: #065f46;
+  --color-gold: #fbbf24;
+  --color-gold-dark: #b45309;
+
+  --font-sans: "Inter", var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-arabic: "Amiri", var(--font-amiri), "Traditional Arabic", "Scheherazade New", "Noto Naskh Arabic", "Times New Roman", serif;
+  --font-uthmani: "Scheherazade New", "Amiri Quran", "KFGQPC Uthmanic Script HAFS", "Amiri", "Traditional Arabic", serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ */
+/* Utilitas halaman terang                                            */
+/* ------------------------------------------------------------------ */
+
+/* Pola geometri Islam: bintang delapan (Khatam) dari dua bujur sangkar. */
+.girih-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none' stroke='%231f5138' stroke-width='1'%3E%3Cg transform='translate(48 48)'%3E%3Crect x='-17' y='-17' width='34' height='34'/%3E%3Crect x='-17' y='-17' width='34' height='34' transform='rotate(45)'/%3E%3Ccircle r='24'/%3E%3C/g%3E%3Cg transform='translate(0 0)'%3E%3Crect x='-17' y='-17' width='34' height='34'/%3E%3Crect x='-17' y='-17' width='34' height='34' transform='rotate(45)'/%3E%3C/g%3E%3Cg transform='translate(96 0)'%3E%3Crect x='-17' y='-17' width='34' height='34'/%3E%3Crect x='-17' y='-17' width='34' height='34' transform='rotate(45)'/%3E%3C/g%3E%3Cg transform='translate(0 96)'%3E%3Crect x='-17' y='-17' width='34' height='34'/%3E%3Crect x='-17' y='-17' width='34' height='34' transform='rotate(45)'/%3E%3C/g%3E%3Cg transform='translate(96 96)'%3E%3Crect x='-17' y='-17' width='34' height='34'/%3E%3Crect x='-17' y='-17' width='34' height='34' transform='rotate(45)'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-size: 96px 96px;
+}
+
+.arabic {
+  font-family: var(--font-amiri), "Amiri", "Times New Roman", serif;
+  line-height: 1.9;
+}
+
+.font-uthmani {
+  font-family: var(--font-uthmani), "Scheherazade New", "Amiri Quran", "KFGQPC Uthmanic Script HAFS", "Amiri", "Traditional Arabic", serif;
+  /* Aktifkan fitur OpenType kaligrafi Utsmani:
+     liga  = ligatur standar, rlig = ligatur wajib, calt = alternasi kontekstual,
+     cswh  = glyph alternatif swash, kern = kerning optik */
+  font-feature-settings: "liga" 1, "rlig" 1, "calt" 1, "cswh" 1, "kern" 1, "ss01" 1;
+  font-variant-ligatures: common-ligatures contextual;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  /* Jangan pakai letter-spacing pada teks Arab — merusak ligatur dan membuat kaku */
+  letter-spacing: 0;
+  /* Line-height organik: beri ruang untuk harakat di atas/bawah */
+  line-height: 2.3;
+  word-spacing: 0.06em;
+}
+
+/* Label kecil bergaya arsip: huruf besar, jarak lebar. */
+.label-kecil {
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ */
+/* Utilitas lama untuk halaman bertema gelap                          */
+/* ------------------------------------------------------------------ */
+
+.islamic-pattern {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(16, 185, 129, 0.15) 1px,
+    transparent 0
+  );
+  background-size: 40px 40px;
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.emerald-glow {
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+}
+
+/* ------------------------------------------------------------------ */
+/* Animasi                                                            */
+/* ------------------------------------------------------------------ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+@keyframes ayatMasuk {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-ayat-masuk {
+  animation: ayatMasuk 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes denyutLembut {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-denyut-lembut {
+  animation: denyutLembut 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-ayat-masuk,
+  .animate-denyut-lembut {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Komponen bersama                                                   */
+/* Dipakai seluruh halaman agar tampilannya satu bahasa desain.       */
+/* ------------------------------------------------------------------ */
+
+@layer components {
+  .page-shell {
+    @apply mx-auto w-full max-w-6xl px-6 py-12 lg:px-8 lg:py-16;
+  }
+
+  .page-shell-wide {
+    @apply mx-auto w-full max-w-7xl px-6 py-12 lg:px-8 lg:py-16;
+  }
+
+  /* Judul halaman: label kecil kuningan, lalu judul hijau tua. */
+  .kicker {
+    @apply text-xs font-semibold uppercase tracking-widest text-brass;
+  }
+
+  .page-title {
+    @apply text-4xl font-semibold leading-tight tracking-tight text-forest-900 sm:text-5xl;
+  }
+
+  .page-lead {
+    @apply max-w-2xl text-base leading-relaxed text-ink-500;
+  }
+
+  .section-title {
+    @apply text-xl font-semibold tracking-tight text-forest-900;
+  }
+
+  /* Permukaan kartu: latar kertas lebih terang dari halaman, garis rambut. */
+  .surface {
+    @apply rounded-xl border border-forest-900/10 bg-white/70;
+  }
+
+  .surface-quiet {
+    @apply rounded-xl border border-forest-900/10 bg-forest-50/60;
+  }
+
+  .rule {
+    @apply h-px w-full bg-forest-900/10;
+  }
+
+  .meta {
+    @apply text-xs text-ink-400;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-full border border-forest-900/10 bg-forest-50 px-3 py-1 text-xs font-medium uppercase tracking-wide text-forest-700;
+  }
+
+  /* Tombol */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition;
+  }
+
+  .btn-primary {
+    @apply bg-forest-700 text-paper hover:bg-forest-600;
+  }
+
+  .btn-outline {
+    @apply border border-forest-900/15 text-forest-800 hover:border-forest-700/40 hover:bg-forest-50;
+  }
+
+  .btn-quiet {
+    @apply text-ink-500 hover:text-forest-700;
+  }
+
+  /* Formulir */
+  .field-label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-400;
+  }
+
+  .field {
+    @apply w-full rounded-lg border border-forest-900/15 bg-white/80 px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink-400 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20;
+  }
+
+  /* Tautan bergaris bawah yang tidak norak (garis tipis, bukan underline). */
+  .link-hairline {
+    @apply text-forest-700 transition hover:text-forest-600;
+  }
+
+  /* Navigasi sidebar admin/pengurus. */
+  .nav-item {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-ink-500 transition hover:bg-forest-50 hover:text-forest-800;
+  }
+
+  .nav-item-aktif {
+    @apply bg-forest-100 text-forest-800;
+  }
+}
+
+/* Varian pola geometri untuk kanvas hijau gelap (papan informasi beranda). */
+.girih-pattern-terang {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%239fe4c0' stroke-width='0.9'%3E%3Crect x='20' y='20' width='40' height='40'/%3E%3Crect x='20' y='20' width='40' height='40' transform='rotate(45 40 40)'/%3E%3Crect x='0' y='0' width='40' height='40' transform='rotate(45 40 40)'/%3E%3Crect x='40' y='40' width='40' height='40' transform='rotate(45 40 40)'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 80px 80px;
+}

@@ -1,0 +1,45 @@
+# Dependensi
+node_modules/
+.pnp
+.pnp.js
+
+# Build Next.js
+.next/
+out/
+build/
+dist/
+
+# Berkas lingkungan -- JANGAN pernah ikut ter-commit.
+# Berisi NEXTAUTH_SECRET dan kata sandi seed.
+.env
+.env.local
+.env.*.local
+
+# Database lokal SQLite (berisi data masjid + hash sandi pengguna)
+prisma/*.db
+prisma/*.db-journal
+*.sqlite
+*.sqlite3
+
+# Berkas unggahan pengguna (foto ustadz/kegiatan, suara adzan).
+# Isi produksi tidak perlu masuk repositori.
+uploads/
+
+# Cache dan artefak alat
+*.tsbuildinfo
+next-env.d.ts
+.eslintcache
+coverage/
+
+# Sistem operasi & editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Berkas bantu verifikasi/smoke test sementara di akar proyek
+probe-*.ps1
+*.tmp-smoke*
+.tmp-smoke*

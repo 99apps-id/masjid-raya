@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Masjid Raya Pro">
+  <rect width="48" height="48" rx="9" fill="#0f5132" />
+  <path
+    d="M24 5.5c-7.9 6.9-12.6 11.9-12.6 19.3V42h25.2V24.8c0-7.4-4.7-12.4-12.6-19.3Z"
+    fill="none"
+    stroke="#fbf8f1"
+    stroke-width="2.9"
+    stroke-linejoin="round"
+  />
+  <circle cx="24" cy="3.9" r="2.1" fill="#fbf8f1" />
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    fill="#fbf8f1"
+    d="M15.8 24a8.2 8.2 0 1 0 16.4 0 8.2 8.2 0 1 0-16.4 0Zm5.8-1.6a7 7 0 1 0 14 0 7 7 0 1 0-14 0Z"
+  />
+</svg>
