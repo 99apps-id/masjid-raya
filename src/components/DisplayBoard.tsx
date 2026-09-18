@@ -465,7 +465,7 @@ export default function DisplayBoard({
         }`}
       >
         {/* Kolom Kiri: Ayat Pilihan Showcase (Menyatu transparan dengan latar belakang) */}
-        <section className="flex h-full flex-col justify-center lg:col-span-7">
+        <section className="flex flex-col justify-center lg:col-span-7">
           <AyatShowcase
             ayat={ayat}
             jedaMs={14000}
@@ -474,8 +474,8 @@ export default function DisplayBoard({
         </section>
 
         {/* Kolom Kanan: Papan Waktu Sekarang & Kotak Hitung Mundur Shalat (Semi-Transparan) */}
-        <section className="flex h-full flex-col justify-center lg:col-span-5">
-          <div className="surface flex flex-col justify-between rounded-2xl border border-forest-900/15 bg-white/45 p-5 shadow-sm backdrop-blur-md transition hover:border-forest-900/25 lg:p-6">
+        <section className="flex flex-col justify-center lg:col-span-5">
+          <div className="surface flex flex-col rounded-2xl border border-forest-900/15 bg-white/45 p-5 shadow-sm backdrop-blur-md transition hover:border-forest-900/25 lg:p-6 overflow-y-auto">
             {/* Bagian 1: Waktu Sekarang */}
             <div>
               <div className="flex items-center justify-between">
@@ -583,7 +583,7 @@ export default function DisplayBoard({
 
             {/* Kontrol Audio Adzan & Pengingat */}
             {(adzanAktif || reminderSuara) && (
-              <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-forest-900/10 pt-3">
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-forest-900/10 pt-3">
                 {reminderSuara && (
                   <span className="text-xs font-medium text-ink-500">
                     {suaraSiap ? "🔔 Pengingat aktif" : "🔔 Ketuk layar untuk aktifkan suara"}
