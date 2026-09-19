@@ -31,6 +31,13 @@ const AWAL: Profil = {
   favicon: null,
 };
 
+/**
+ * Kolom yang boleh dikirim ke API. Respons GET berisi baris database utuh
+ * (id, createdAt, updatedAt) — kunci metadata itu wajib dibuang sebelum
+ * PUT karena skema validasi menolak kunci tak dikenal.
+ */
+const KUNCI_PROFIL = Object.keys(AWAL) as (keyof Profil)[];
+
 export default function AdminProfilPage() {
   const router = useRouter();
   const [profil, setProfil] = useState<Profil>(AWAL);
@@ -43,8 +50,18 @@ export default function AdminProfilPage() {
       try {
         const res = await fetch("/api/admin/profil", { cache: "no-store" });
         if (res.ok) {
-          const data = (await res.json()) as Profil;
-          setProfil({ ...AWAL, ...data });
+          const data = (await res.json()) as Record<string, unknown>;
+          // Ambil hanya kolom profil; buang metadata baris (id, createdAt, ...).
+          const bersih: Profil = { ...AWAL };
+          for (const kunci of KUNCI_PROFIL) {
+            const nilai = data[kunci];
+            if (kunci === "nama") {
+              if (typeof nilai === "string") bersih.nama = nilai;
+            } else if (typeof nilai === "string" || nilai === null) {
+              bersih[kunci] = nilai;
+            }
+          }
+          setProfil(bersih);
         } else {
           setPesan({ jenis: "galat", teks: "Gagal memuat profil masjid" });
         }
@@ -66,10 +83,13 @@ export default function AdminProfilPage() {
     setPesan(null);
 
     try {
+      // Kirim hanya kolom profil yang dikenal — tanpa metadata baris.
+      const muatan: Record<string, string | null> = {};
+      for (const kunci of KUNCI_PROFIL) muatan[kunci] = profil[kunci];
       const res = await fetch("/api/admin/profil", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profil),
+        body: JSON.stringify(muatan),
       });
 
       if (!res.ok) {

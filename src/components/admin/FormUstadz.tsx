@@ -32,8 +32,15 @@ export default function FormUstadz({ id }: { id?: string }) {
       try {
         const res = await fetch(`/api/admin/ustadz/${id}`, { cache: "no-store" });
         if (res.ok) {
-          const hasil = (await res.json()) as DataUstadz;
-          setData({ ...AWAL, ...hasil });
+          const hasil = (await res.json()) as Record<string, unknown>;
+          // Petakan hanya kolom form; buang metadata baris (id, createdAt, ...)
+          // agar tidak ditolak skema strict saat disimpan.
+          setData({
+            nama: typeof hasil.nama === "string" ? hasil.nama : "",
+            spesialisasi: typeof hasil.spesialisasi === "string" ? hasil.spesialisasi : null,
+            bio: typeof hasil.bio === "string" ? hasil.bio : null,
+            foto: typeof hasil.foto === "string" ? hasil.foto : null,
+          });
         }
       } catch {
         // Biarkan formulir kosong bila pengambilan gagal; pesan muncul saat simpan.

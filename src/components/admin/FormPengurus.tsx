@@ -31,8 +31,15 @@ export default function FormPengurus({ id }: { id?: string }) {
       try {
         const res = await fetch(`/api/admin/pengurus/${id}`, { cache: "no-store" });
         if (res.ok) {
-          const hasil = (await res.json()) as DataPengurus;
-          setData({ ...AWAL, ...hasil });
+          const hasil = (await res.json()) as Record<string, unknown>;
+          // Petakan hanya kolom form; buang metadata baris (id, createdAt, ...)
+          // agar tidak ditolak skema strict saat disimpan.
+          setData({
+            nama: typeof hasil.nama === "string" ? hasil.nama : "",
+            jabatan: typeof hasil.jabatan === "string" ? hasil.jabatan : "",
+            urutan: typeof hasil.urutan === "number" ? hasil.urutan : 0,
+            foto: typeof hasil.foto === "string" ? hasil.foto : null,
+          });
         }
       } catch {
         // Formulir tetap dapat diisi manual.

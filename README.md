@@ -42,8 +42,9 @@ Papan informasi digital dirancang adaptif untuk layar TV masjid, kiosk layar sen
 ### 1. 🕌 Papan Informasi Digital (Display Board TV & Kiosk)
 - **Desain Khusus TV & Kiosk:** Tata letak digital signage murni dengan latar belakang kaligrafi islami, lengkung mihrab, dan pola girih bintang delapan.
 - **Mode TV Layar Penuh (Fullscreen):** Sekali klik untuk mengubah peramban menjadi display TV masjid tanpa menu atau footer situs.
-- **Kaligrafi Al-Qur'an Rasm Utsmani:** Menampilkan ayat-ayat pilihan dengan font kaligrafi Utsmani autentik (*Scheherazade New* & *Amiri Quran*) berlatar transparan yang menyatu anggun dengan arsitektur mihrab.
-- **Autoplay Murottal Ayat:** Murottal lantunan Syaikh Mishary Rashid Alafasy berputar otomatis setiap ayat berganti, dengan visualisasi gelombang audio aktif dan transisi lembut (*cross-fade*).
+- **Kaligrafi Al-Qur'an Rasm Utsmani:** Menampilkan ayat-ayat pilihan dengan font kaligrafi Utsmani autentik (*Amiri Quran* & *Scheherazade New*, self-host tanpa CDN) berlatar transparan yang menyatu anggun dengan arsitektur mihrab.
+- **Autoplay Murottal Ayat:** Murottal berputar otomatis setiap ayat berganti, dengan visualisasi gelombang audio aktif dan transisi lembut (*cross-fade*). Kutipan multi-ayat (mis. Al-Insyirah 5–6) dilantunkan ayat per ayat sampai tuntas.
+- **Pilihan Reciter Murottal:** 12 qari terkenal (Mishary Alafasy, Abdul Basit, Al-Husary, Minshawi, Maher Al-Muaiqly, As-Sudais, dsb.) dapat diganti lewat Admin → Pengaturan → Suara murottal, lengkap dengan pratinjau audio.
 - **Jam Tabular & Hitung Mundur Shalat:** Jam digital presisi tinggi, hitung mundur menuju waktu shalat berikutnya, dan progress bar kemajuan waktu antar-shalat.
 - **Rel Jadwal Shalat 8 Waktu:** Imsak, Subuh, Terbit, Dhuha, Dzuhur, Ashar, Maghrib, dan Isya dengan penanda waktu aktif berkontras tinggi yang responsif di segala ukuran layar.
 - **Fitur Khusus Ramadhan:** Deteksi otomatis bulan suci Ramadhan yang menampilkan jadwal Imsak dan hitung mundur waktu Berbuka puasa.
@@ -73,10 +74,11 @@ Papan informasi digital dirancang adaptif untuk layar TV masjid, kiosk layar sen
 | **Framework Utama** | [Next.js 15](https://nextjs.org/) | App Router, Server Components & Route Handlers |
 | **Bahasa Pemrograman** | [TypeScript 5](https://www.typescriptlang.org/) | Type-safe end-to-end |
 | **Styling & Desain** | [Tailwind CSS v4](https://tailwindcss.com/) | `@theme inline`, utilitas modern & CSS Variables |
+| **Tipografi** | `next/font` (self-host) | Plus Jakarta Sans (UI), Marcellus (judul), Amiri Quran/Scheherazade/Amiri/Reem Kufi (Arab) |
 | **Basis Data & ORM** | [Prisma](https://www.prisma.io/) + SQLite | Relasional, ringan, tanpa konfigurasi rumit |
 | **Autentikasi** | [NextAuth.js v4](https://next-auth.js.org/) | JWT session, bcrypt password hashing |
 | **Validasi Skema** | [Zod](https://zod.dev/) | Validasi runtime dan tipe data |
-| **Audio & Murattal** | Web Audio API + CDN EveryAyah | Murottal Syaikh Mishary Rashid Alafasy |
+| **Audio & Murattal** | Web Audio API + CDN EveryAyah | 12 reciter pilihan + arsip adzan IslamCan |
 
 ---
 
@@ -169,6 +171,8 @@ masjid-raya-pro/
 │   └── lib/
 │       ├── hisab.ts        # Algoritma hisab jadwal shalat Kemenag RI
 │       ├── ayat.ts         # Koleksi ayat Al-Qur'an & integrasi audio
+│       ├── murottal.ts     # Katalog 12 reciter EveryAyah terverifikasi
+│       ├── azan.ts         # Katalog suara adzan + resolusi URL
 │       ├── papan.ts        # Kalkulasi hitung mundur waktu shalat & iqomah
 │       ├── upload.ts       # Manajemen upload aman berbasis magic bytes
 │       └── validasi.ts     # Skema Zod untuk integritas data
