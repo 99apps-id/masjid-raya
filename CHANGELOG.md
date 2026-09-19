@@ -11,8 +11,7 @@ dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 - Suara Adzan khusus Subuh dengan tatswib (*Ash-shalatu khairum minan-naum*), bundel audio bawaan lokal di `public/audio/adzan-subuh.mp3` yang tangguh saat offline.
 - Logika otomatis pemutaran adzan: DisplayBoard secara otomatis memilih audio adzan Subuh khusus saat waktu subuh tiba, dan adzan reguler untuk 4 waktu shalat lainnya.
 - Panel pengaturan admin mandiri untuk Adzan Subuh (`adzan_subuh_pilihan` dan `adzan_subuh_audio_url`) lengkap dengan pratinjau pemutar suara dan unggah berkas kustom.
-- Deteksi lokasi otomatis pengguna berbasis geolokasi/jaringan peramban, dengan fallback default ke Jakarta bila lokasi belum diizinkan atau tidak terdeteksi.
-- Desain identitas visual baru: Ikon aplikasi (favicon) dan lambang masjid profesional berbasis siluet arsitektur kubah ogee, menara kembar, gerbang mihrab, dan ornamen bintang delapan (Khatam), menggantikan ikon generik/AI.
+- Identitas visual & logo: Mempertahankan lambang mihrab & bulan sabit resmi Masjid Raya Pro yang ikonik.
 
 ### Diperbaiki
 - Pemutaran surah penuh: seluruh ayat dalam satu surah kini dilantunkan berurutan sampai tuntas sebelum otomatis beralih ke surah berikutnya, tidak lagi berhenti di ayat pertama.

@@ -1,55 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160" fill="none" role="img" aria-label="Logo Masjid Raya Pro">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160" fill="none">
   <defs>
-    <linearGradient id="emGrad" x1="0" y1="0" x2="160" y2="160" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#0e6241" />
-      <stop offset="100%" stop-color="#03331f" />
+    <linearGradient id="emeraldGrad" x1="0" y1="0" x2="160" y2="160" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0e6241"/>
+      <stop offset="1" stop-color="#063925"/>
     </linearGradient>
     <linearGradient id="goldGrad" x1="20" y1="20" x2="140" y2="140" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#fcedb4" />
-      <stop offset="45%" stop-color="#d99b26" />
-      <stop offset="100%" stop-color="#a86e14" />
+      <stop stop-color="#f5d77f"/>
+      <stop offset="0.5" stop-color="#d9a441"/>
+      <stop offset="1" stop-color="#b07f22"/>
     </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#021c11" flood-opacity="0.35" />
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#04261a" flood-opacity="0.3"/>
     </filter>
   </defs>
 
-  <!-- Piringan Lambang Medallion -->
-  <circle cx="80" cy="80" r="74" fill="url(#emGrad)" filter="url(#shadow)" />
-  <circle cx="80" cy="80" r="70" stroke="url(#goldGrad)" stroke-width="1.8" stroke-opacity="0.85" />
-  <circle cx="80" cy="80" r="66" stroke="url(#goldGrad)" stroke-width="1" stroke-dasharray="3 3" stroke-opacity="0.6" />
+  <!-- Background Circle Badge -->
+  <circle cx="80" cy="80" r="74" fill="url(#emeraldGrad)" filter="url(#glow)"/>
+  <circle cx="80" cy="80" r="70" stroke="url(#goldGrad)" stroke-width="2.5" stroke-dasharray="4 2"/>
+  <circle cx="80" cy="80" r="66" stroke="url(#goldGrad)" stroke-width="1.2"/>
 
-  <!-- Menara Kiri -->
-  <path d="M 36 122 L 36 68 L 41 68 L 41 122 Z" fill="#0b482f" />
-  <path d="M 33 68 L 44 68 L 38.5 54 Z" fill="url(#goldGrad)" />
-  <line x1="38.5" y1="54" x2="38.5" y2="46" stroke="url(#goldGrad)" stroke-width="1.8" stroke-linecap="round" />
-  <circle cx="38.5" cy="45" r="2.2" fill="url(#goldGrad)" />
+  <!-- Mihrab Arch Silhouette -->
+  <path d="M80 32 C64 45.8 54.6 55.8 54.6 70.6 V106 H105.4 V70.6 C105.4 55.8 96 45.8 80 32 Z" 
+        stroke="url(#goldGrad)" stroke-width="3.5" stroke-linejoin="round" fill="#072b1d"/>
 
-  <!-- Menara Kanan -->
-  <path d="M 119 122 L 119 68 L 124 68 L 124 122 Z" fill="#0b482f" />
-  <path d="M 116 68 L 127 68 L 121.5 54 Z" fill="url(#goldGrad)" />
-  <line x1="121.5" y1="54" x2="121.5" y2="46" stroke="url(#goldGrad)" stroke-width="1.8" stroke-linecap="round" />
-  <circle cx="121.5" cy="45" r="2.2" fill="url(#goldGrad)" />
+  <!-- Dome Finial -->
+  <circle cx="80" cy="28" r="3.8" fill="url(#goldGrad)"/>
+  <path d="M80 22 V28" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round"/>
 
-  <!-- Fasad & Dinding Utama -->
-  <path d="M 41 122 L 41 90 L 119 90 L 119 122 Z" fill="#073320" />
-  <line x1="28" y1="122" x2="132" y2="122" stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round" />
+  <!-- Crescent Moon (Hilal) inside Mihrab -->
+  <path fill-rule="evenodd" clip-rule="evenodd" fill="url(#goldGrad)"
+        d="M66.5 73.5 C66.5 82.6 73.9 90 83 90 C87.2 90 91 88.4 93.9 85.8 C85.6 86.4 78.4 79.5 78.4 71 C78.4 66.8 80 63 82.6 60.1 C73.5 61.2 66.5 66.5 66.5 73.5 Z"/>
 
-  <!-- Kubah Utama Berbentuk Ogee -->
-  <path d="M 50 90 C 50 67 63 48 80 36 C 97 48 110 67 110 90 Z" fill="url(#goldGrad)" />
-  <path d="M 54 90 C 54 70 65 52 80 43 C 95 52 106 70 106 90 Z" fill="#0e6241" opacity="0.3" />
-
-  <!-- Finial Puncak & Hilal -->
-  <line x1="80" y1="36" x2="80" y2="24" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round" />
-  <path d="M 77.8 22.5 A 5.5 5.5 0 1 1 83.5 28.2 A 4.5 4.5 0 1 0 77.8 22.5 Z" fill="url(#goldGrad)" />
-
-  <!-- Gerbang Lengkung Mihrab -->
-  <path d="M 68 122 L 68 98 C 68 89 74 84 80 80 C 86 84 92 89 92 98 L 92 122 Z" fill="#032014" stroke="url(#goldGrad)" stroke-width="2" stroke-linejoin="round" />
-
-  <!-- Bintang Delapan Islam (Khatam) di Tengah Kubah -->
-  <g transform="translate(80, 63) scale(1.6)" fill="url(#goldGrad)">
-    <rect x="-4" y="-4" width="8" height="8" rx="0.8" />
-    <rect x="-4" y="-4" width="8" height="8" rx="0.8" transform="rotate(45)" />
-    <circle cx="0" cy="0" r="1.5" fill="#0a3d28" />
-  </g>
+  <!-- Minaret & Star Accents -->
+  <circle cx="87.5" cy="65.5" r="2.2" fill="url(#goldGrad)"/>
 </svg>
