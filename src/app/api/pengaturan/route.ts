@@ -10,7 +10,7 @@ import {
   type KunciPengaturan,
 } from "@/lib/settings";
 import { cariKota, KOTA_INDONESIA } from "@/lib/kota";
-import { ID_ADZAN_KUSTOM, PILIHAN_ADZAN, urlSuaraValid } from "@/lib/azan";
+import { ID_ADZAN_KUSTOM, PILIHAN_ADZAN, PILIHAN_ADZAN_SUBUH, urlSuaraValid } from "@/lib/azan";
 import { cariPilihanMurottal } from "@/lib/murottal";
 import { getJadwalHarian, kunciTanggal } from "@/lib/prayer-times";
 
@@ -70,6 +70,20 @@ const PEMERIKSA: Record<KunciPengaturan, (nilai: string) => HasilPeriksa> = {
     nilai === ID_ADZAN_KUSTOM || PILIHAN_ADZAN.some((p) => p.id === nilai)
       ? { ok: true, nilai }
       : { ok: false, pesan: "Pilihan suara adzan tidak dikenal" },
+  adzan_subuh_pilihan: (nilai) =>
+    nilai === ID_ADZAN_KUSTOM || PILIHAN_ADZAN_SUBUH.some((p) => p.id === nilai)
+      ? { ok: true, nilai }
+      : { ok: false, pesan: "Pilihan suara adzan subuh tidak dikenal" },
+  adzan_subuh_audio_url: (nilai) => {
+    const bersih = nilai.trim();
+    if (bersih === "") return { ok: true, nilai: "" };
+    return urlSuaraValid(bersih)
+      ? { ok: true, nilai: bersih }
+      : {
+          ok: false,
+          pesan: "Tautan suara harus https, atau berkas hasil unggahan aplikasi",
+        };
+  },
   murottal_reciter: (nilai) =>
     cariPilihanMurottal(nilai)
       ? { ok: true, nilai }

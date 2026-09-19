@@ -14,9 +14,12 @@ import {
 import {
   ID_ADZAN_KUSTOM,
   namaPilihanAdzan,
+  namaPilihanAdzanSubuh,
   PILIHAN_ADZAN,
   PILIHAN_ADZAN_KUSTOM,
+  PILIHAN_ADZAN_SUBUH,
   resolveAdzanUrl,
+  resolveAdzanSubuhUrl,
 } from "@/lib/azan";
 import {
   cariPilihanMurottal,
@@ -221,6 +224,9 @@ export default function AdminPengaturanPage() {
   const urlAdzanAktif = resolveAdzanUrl(nilai.adzan_pilihan, nilai.adzan_audio_url);
   const labelAdzan = namaPilihanAdzan(nilai.adzan_pilihan, nilai.adzan_audio_url);
 
+  const urlAdzanSubuhAktif = resolveAdzanSubuhUrl(nilai.adzan_subuh_pilihan, nilai.adzan_subuh_audio_url);
+  const labelAdzanSubuh = namaPilihanAdzanSubuh(nilai.adzan_subuh_pilihan, nilai.adzan_subuh_audio_url);
+
   const murottalTerpilih =
     cariPilihanMurottal(nilai.murottal_reciter) ?? PILIHAN_MUROTTAL[0]!;
   const urlContohMurottal = `https://everyayah.com/data/${murottalTerpilih.subdir}/001001.mp3`;
@@ -392,99 +398,170 @@ export default function AdminPengaturanPage() {
                 onUbah={(v) => ubah("adzan_enabled", String(v))}
               />
 
-              <div>
-                <label htmlFor="adzan-pilihan" className="field-label">
-                  Pilihan suara
-                </label>
-                <select
-                  id="adzan-pilihan"
-                  className="field"
-                  value={nilai.adzan_pilihan ?? PILIHAN_ADZAN[0]!.id}
-                  onChange={(e) => ubah("adzan_pilihan", e.target.value)}
-                >
-                  {PILIHAN_ADZAN.map((pilihan) => (
-                    <option key={pilihan.id} value={pilihan.id}>
-                      {pilihan.nama}
-                    </option>
-                  ))}
-                  <option value={PILIHAN_ADZAN_KUSTOM.id}>
-                    {PILIHAN_ADZAN_KUSTOM.nama}
-                  </option>
-                </select>
-                <p className="meta mt-2">
-                  Suara aktif: <strong className="font-medium">{labelAdzan}</strong>
-                  {urlAdzanAktif.startsWith("http") && (
-                    <>
-                      {" · "}
-                      <a
-                        href={urlAdzanAktif}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="link-hairline"
-                      >
-                        dengarkan di tab baru
-                      </a>
-                    </>
+              {/* --- Suara Adzan Reguler --- */}
+              <div className="rounded-xl border border-forest-900/10 bg-forest-50/30 p-5">
+                <h3 className="text-sm font-bold text-forest-900">
+                  Suara Adzan Reguler (Zuhur, Ashar, Maghrib, Isya)
+                </h3>
+                <p className="meta mt-1">
+                  Diputar saat masuk waktu shalat zuhur, ashar, maghrib, dan isya.
+                </p>
+
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <label htmlFor="adzan-pilihan" className="field-label">
+                      Pilihan suara
+                    </label>
+                    <select
+                      id="adzan-pilihan"
+                      className="field"
+                      value={nilai.adzan_pilihan ?? PILIHAN_ADZAN[0]!.id}
+                      onChange={(e) => ubah("adzan_pilihan", e.target.value)}
+                    >
+                      {PILIHAN_ADZAN.map((pilihan) => (
+                        <option key={pilihan.id} value={pilihan.id}>
+                          {pilihan.nama}
+                        </option>
+                      ))}
+                      <option value={PILIHAN_ADZAN_KUSTOM.id}>
+                        {PILIHAN_ADZAN_KUSTOM.nama}
+                      </option>
+                    </select>
+                    <p className="meta mt-2">
+                      Suara aktif: <strong className="font-medium">{labelAdzan}</strong>
+                      {urlAdzanAktif.startsWith("http") && (
+                        <>
+                          {" · "}
+                          <a
+                            href={urlAdzanAktif}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            className="link-hairline"
+                          >
+                            dengarkan di tab baru
+                          </a>
+                        </>
+                      )}
+                    </p>
+                  </div>
+
+                  {urlAdzanAktif && (
+                    <div>
+                      <span className="field-label">Pratinjau Adzan Reguler</span>
+                      <audio
+                        src={urlAdzanAktif}
+                        controls
+                        preload="none"
+                        className="w-full max-w-md"
+                      />
+                    </div>
                   )}
-                </p>
-              </div>
 
-              {urlAdzanAktif && (
-                <div>
-                  <span className="field-label">Pratinjau</span>
-                  <audio
-                    src={urlAdzanAktif}
-                    controls
-                    preload="none"
-                    className="w-full max-w-md"
-                  />
+                  <div className="border-t border-forest-900/10 pt-4">
+                    <BerkasUnggah
+                      folder="adzan"
+                      jenis="audio"
+                      label="Unggah suara adzan reguler sendiri"
+                      value={
+                        (nilai.adzan_audio_url ?? "").startsWith("/api/media/azan/")
+                          ? nilai.adzan_audio_url!
+                          : null
+                      }
+                      onChange={(url) => {
+                        ubah("adzan_pilihan", ID_ADZAN_KUSTOM);
+                        ubah("adzan_audio_url", url ?? "");
+                      }}
+                      petunjuk="MP3/OGG/WAV/M4A maksimal 15 MB."
+                    />
+                  </div>
                 </div>
-              )}
-
-              <div className="border-t border-forest-900/10 pt-6">
-                <BerkasUnggah
-                  folder="adzan"
-                  jenis="audio"
-                  label="Unggah suara adzan sendiri"
-                  value={
-                    (nilai.adzan_audio_url ?? "").startsWith("/api/media/azan/")
-                      ? nilai.adzan_audio_url!
-                      : null
-                  }
-                  onChange={(url) => {
-                    // Berkas unggahan selalu dipilih sebagai sumber, jadi
-                    // pilihannya dipindah ke "kustom".
-                    ubah("adzan_pilihan", ID_ADZAN_KUSTOM);
-                    ubah("adzan_audio_url", url ?? "");
-                  }}
-                  petunjuk="MP3/OGG/WAV/M4A maksimal 15 MB. Mengunggah berkas otomatis memindahkan pilihan suara ke mode kustom."
-                />
               </div>
 
-              <div>
-                <label htmlFor="adzan-url" className="field-label">
-                  Atau tempel tautan https
-                </label>
-                <input
-                  id="adzan-url"
-                  type="url"
-                  className="field"
-                  placeholder="https://contoh.id/adzan.mp3"
-                  value={
-                    (nilai.adzan_audio_url ?? "").startsWith("http")
-                      ? nilai.adzan_audio_url!
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const url = e.target.value;
-                    ubah("adzan_audio_url", url);
-                    if (url.trim() !== "") ubah("adzan_pilihan", ID_ADZAN_KUSTOM);
-                  }}
-                />
-                <p className="meta mt-2">
-                  Hanya tautan https yang diterima. Tautan kustom selalu menang atas
-                  pilihan bawaan.
+              {/* --- Suara Adzan Khusus Subuh --- */}
+              <div className="rounded-xl border border-brass-600/30 bg-brass/10 p-5">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full bg-brass shadow-sm" />
+                  <h3 className="text-sm font-bold text-forest-950">
+                    Suara Adzan Khusus Subuh (dengan Tatswib)
+                  </h3>
+                </div>
+                <p className="meta mt-1">
+                  Otomatis diputar khusus waktu Subuh, lengkap dengan lafaz:{" "}
+                  <strong className="font-medium text-forest-800">
+                    الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ (Ash-shalatu khairum minan-naum)
+                  </strong>
+                  .
                 </p>
+
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <label htmlFor="adzan-subuh-pilihan" className="field-label">
+                      Pilihan suara adzan subuh
+                    </label>
+                    <select
+                      id="adzan-subuh-pilihan"
+                      className="field"
+                      value={nilai.adzan_subuh_pilihan ?? PILIHAN_ADZAN_SUBUH[0]!.id}
+                      onChange={(e) => ubah("adzan_subuh_pilihan", e.target.value)}
+                    >
+                      {PILIHAN_ADZAN_SUBUH.map((pilihan) => (
+                        <option key={pilihan.id} value={pilihan.id}>
+                          {pilihan.nama}
+                        </option>
+                      ))}
+                      <option value={PILIHAN_ADZAN_KUSTOM.id}>
+                        {PILIHAN_ADZAN_KUSTOM.nama}
+                      </option>
+                    </select>
+                    <p className="meta mt-2">
+                      Suara Subuh aktif:{" "}
+                      <strong className="font-medium">{labelAdzanSubuh}</strong>
+                      {urlAdzanSubuhAktif.startsWith("http") && (
+                        <>
+                          {" · "}
+                          <a
+                            href={urlAdzanSubuhAktif}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            className="link-hairline"
+                          >
+                            dengarkan di tab baru
+                          </a>
+                        </>
+                      )}
+                    </p>
+                  </div>
+
+                  {urlAdzanSubuhAktif && (
+                    <div>
+                      <span className="field-label">Pratinjau Adzan Subuh</span>
+                      <audio
+                        src={urlAdzanSubuhAktif}
+                        controls
+                        preload="none"
+                        className="w-full max-w-md"
+                      />
+                    </div>
+                  )}
+
+                  <div className="border-t border-forest-900/10 pt-4">
+                    <BerkasUnggah
+                      folder="adzan"
+                      jenis="audio"
+                      label="Unggah suara adzan subuh sendiri"
+                      value={
+                        (nilai.adzan_subuh_audio_url ?? "").startsWith("/api/media/azan/")
+                          ? nilai.adzan_subuh_audio_url!
+                          : null
+                      }
+                      onChange={(url) => {
+                        ubah("adzan_subuh_pilihan", ID_ADZAN_KUSTOM);
+                        ubah("adzan_subuh_audio_url", url ?? "");
+                      }}
+                      petunjuk="MP3/OGG/WAV/M4A maksimal 15 MB rekaman muadzin Subuh masjid Anda."
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </KartuAdmin>

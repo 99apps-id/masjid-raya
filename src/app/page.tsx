@@ -7,7 +7,7 @@ import {
 } from "@/lib/settings";
 import { ambilProfil } from "@/lib/profil";
 import { getJadwalHarian, kunciTanggal } from "@/lib/prayer-times";
-import { resolveAdzanUrl } from "@/lib/azan";
+import { resolveAdzanUrl, resolveAdzanSubuhUrl } from "@/lib/azan";
 import { subdirMurottal } from "@/lib/murottal";
 import { cariSurah } from "@/lib/surah";
 import { ambilAyatAcak } from "@/lib/ayat";
@@ -92,6 +92,10 @@ export default async function Home() {
           adzanAudioUrl={resolveAdzanUrl(
             pengaturan.adzan_pilihan,
             pengaturan.adzan_audio_url
+          )}
+          adzanSubuhAudioUrl={resolveAdzanSubuhUrl(
+            pengaturan.adzan_subuh_pilihan,
+            pengaturan.adzan_subuh_audio_url
           )}
           reminderSuara={pengaturanSaklar(pengaturan, "reminder_suara")}
           tampilkanMurottal={pengaturanSaklar(pengaturan, "tampilkan_murottal")}

@@ -21,10 +21,15 @@ export const PENGATURAN_BAWAAN = {
 
   /** Suara adzan. */
   adzan_enabled: "true",
-  /** Id pilihan suara adzan dari lib/azan.ts. */
+  /** Id pilihan suara adzan umum (Zuhur, Ashar, Maghrib, Isya) dari lib/azan.ts. */
   adzan_pilihan: "adzan-1",
   /** Url kustom (https) atau hasil unggah (/api/media/azan/...) bila adzan_pilihan = "kustom". */
   adzan_audio_url: "",
+
+  /** Id pilihan suara adzan khusus Subuh (memuat tatswib). */
+  adzan_subuh_pilihan: "adzan-subuh-bawaan",
+  /** Url kustom suara adzan khusus Subuh (bila ada). */
+  adzan_subuh_audio_url: "",
 
   /** Jeda iqomah setelah adzan, dalam menit. */
   iqomah_menit: "10",

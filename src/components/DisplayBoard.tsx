@@ -47,6 +47,8 @@ interface DisplayBoardProps {
   iqomahMenit: number;
   adzanAktif: boolean;
   adzanAudioUrl: string;
+  /** Audio adzan khusus Subuh (memuat lafaz tatswib Ash-shalatu khairum minan-naum). */
+  adzanSubuhAudioUrl?: string;
   reminderSuara: boolean;
   tampilkanMurottal: boolean;
   /** Subdirektori EveryAyah reciter murottal pilihan admin (lihat lib/murottal.ts). */
@@ -107,6 +109,7 @@ export default function DisplayBoard({
   iqomahMenit,
   adzanAktif,
   adzanAudioUrl,
+  adzanSubuhAudioUrl,
   reminderSuara,
   tampilkanMurottal,
   murottalReciter,
@@ -381,13 +384,27 @@ export default function DisplayBoard({
     bunyikanNada();
   }, [dalamPengingat, reminderSuara, suaraSiap, ringkasan.berikutnyaKey]);
 
-  // Pemutaran Adzan otomatis
+  // Pemutaran Adzan otomatis: waktu Subuh menggunakan audio khusus Subuh (dengan tatswib)
   useEffect(() => {
-    if (!adzanAktif || !ringkasan.iqomahKey || !adzanAudioUrl) return;
+    if (!adzanAktif || !ringkasan.iqomahKey) return;
     if (adzanTerakhir.current === ringkasan.iqomahKey) return;
     adzanTerakhir.current = ringkasan.iqomahKey;
-    void audioAdzan.current?.play().catch(() => undefined);
-  }, [adzanAktif, ringkasan.iqomahKey, adzanAudioUrl]);
+
+    const urlAdzan =
+      ringkasan.iqomahKey === "subuh" && adzanSubuhAudioUrl
+        ? adzanSubuhAudioUrl
+        : adzanAudioUrl || adzanSubuhAudioUrl;
+
+    if (!urlAdzan) return;
+
+    const el = audioAdzan.current;
+    if (el) {
+      if (el.src !== urlAdzan) {
+        el.src = urlAdzan;
+      }
+      void el.play().catch(() => undefined);
+    }
+  }, [adzanAktif, ringkasan.iqomahKey, adzanAudioUrl, adzanSubuhAudioUrl]);
 
   // Hitung mundur khusus berbuka
   const hitungMundurKe = (jamMenit: string | undefined | null) => {
@@ -775,11 +792,15 @@ export default function DisplayBoard({
                     {suaraSiap ? "🔔 Pengingat aktif" : "🔔 Ketuk layar untuk aktifkan suara"}
                   </span>
                 )}
-                {adzanAktif && adzanAudioUrl && (
+                {adzanAktif && (adzanAudioUrl || adzanSubuhAudioUrl) && (
                   <div className="flex items-center gap-2">
                     <audio
                       ref={audioAdzan}
-                      src={adzanAudioUrl}
+                      src={
+                        ringkasan.berikutnyaKey === "subuh" && adzanSubuhAudioUrl
+                          ? adzanSubuhAudioUrl
+                          : adzanAudioUrl || adzanSubuhAudioUrl
+                      }
                       preload="none"
                       onPlay={() => setAdzanBerbunyi(true)}
                       onEnded={() => setAdzanBerbunyi(false)}
@@ -793,12 +814,23 @@ export default function DisplayBoard({
                       onClick={() => {
                         const el = audioAdzan.current;
                         if (!el) return;
-                        if (el.paused) void el.play().catch(() => undefined);
-                        else el.pause();
+                        if (el.paused) {
+                          const targetUrl =
+                            ringkasan.berikutnyaKey === "subuh" && adzanSubuhAudioUrl
+                              ? adzanSubuhAudioUrl
+                              : adzanAudioUrl || adzanSubuhAudioUrl;
+                          if (targetUrl && el.src !== targetUrl) {
+                            el.src = targetUrl;
+                          }
+                          void el.play().catch(() => undefined);
+                        } else {
+                          el.pause();
+                        }
                       }}
                       className="btn btn-outline py-1 px-3 text-xs"
+                      title={ringkasan.berikutnyaKey === "subuh" ? "Uji Adzan Subuh (dengan Tatswib)" : "Uji Adzan Reguler"}
                     >
-                      Uji Adzan
+                      {ringkasan.berikutnyaKey === "subuh" ? "Uji Adzan Subuh" : "Uji Adzan"}
                     </button>
                   </div>
                 )}
