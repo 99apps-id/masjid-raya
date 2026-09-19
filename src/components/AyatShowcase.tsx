@@ -376,7 +376,7 @@ export default function AyatShowcase({
               <span>Murottal Berputar{totalBagian > 1 ? ` ${bagian + 1}/${totalBagian}` : ""}</span>
             </span>
           )}
-          {audioDiblokirPeramban && (
+          {!ringkas && audioDiblokirPeramban && (
             <span className="rounded-full border border-brass-600/40 bg-brass/15 px-2.5 py-0.5 text-[10px] font-semibold text-brass-700">
               Sentuh layar untuk aktifkan suara
             </span>

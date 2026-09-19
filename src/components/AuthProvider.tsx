@@ -12,17 +12,39 @@ import { SessionProvider } from "next-auth/react";
  * pengembangan tidak menutupi seluruh antarmuka.
  */
 if (typeof window !== "undefined") {
-  window.addEventListener("unhandledrejection", (event) => {
+  const tanganiRejection = (event: PromiseRejectionEvent) => {
     const alasan = event.reason;
+    const adalahEvent =
+      !alasan ||
+      alasan instanceof Event ||
+      (typeof alasan === "object" && alasan !== null && "type" in alasan && !("message" in (alasan as object))) ||
+      String(alasan) === "[object Event]" ||
+      (typeof alasan === "string" && alasan.includes("[object Event]"));
+
+    if (adalahEvent) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  };
+
+  // Tangkap di fase capture agar berjalan sebelum listener devtools Next.js
+  window.addEventListener("unhandledrejection", tanganiRejection, true);
+  window.addEventListener("unhandledrejection", tanganiRejection, false);
+
+  const tanganiError = (event: ErrorEvent) => {
+    const err = event.error;
     if (
-      alasan &&
-      (alasan instanceof Event ||
-        (typeof alasan === "object" && alasan && "type" in alasan) ||
-        String(alasan) === "[object Event]")
+      err instanceof Event ||
+      String(err) === "[object Event]" ||
+      (typeof event.message === "string" && event.message.includes("[object Event]"))
     ) {
       event.preventDefault();
+      event.stopImmediatePropagation();
     }
-  });
+  };
+
+  window.addEventListener("error", tanganiError, true);
+  window.addEventListener("error", tanganiError, false);
 }
 
 export default function AuthProvider({
