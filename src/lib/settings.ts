@@ -35,6 +35,8 @@ export const PENGATURAN_BAWAAN = {
 
   /** Tampilkan pemutar murottal di beranda. */
   tampilkan_murottal: "true",
+  /** Id reciter murottal dari lib/murottal.ts (suara pengisi bacaan ayat). */
+  murottal_reciter: "alafasy",
 
   running_text:
     "Selamat datang di masjid kami. Mari jaga kebersihan dan ketertiban bersama.",

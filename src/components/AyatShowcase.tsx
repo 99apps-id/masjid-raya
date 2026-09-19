@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { rujukanAyat, urlAudioAyat, type Ayat } from "@/lib/ayat";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { rujukanAyat, daftarUrlAudioAyat, type Ayat } from "@/lib/ayat";
+import { SUBDIR_MUROTTAL_BAWAAN } from "@/lib/murottal";
 import {
   IkonSuara,
   IkonPutar,
@@ -16,12 +17,25 @@ interface AyatShowcaseProps {
   jedaMs?: number;
   /** Tampilkan tombol dan pemutar murattal untuk ayat yang sedang tampil. */
   tampilkanMurottal?: boolean;
+  /**
+   * Subdirektori EveryAyah reciter pilihan admin. Bawaan: Alafasy.
+   * Ganti suara cukup lewat pengaturan — tanpa menyentuh kode.
+   */
+  reciter?: string;
+  /**
+   * Mode ringkas untuk layar penuh TV: badge status, tombol kontrol, dan
+   * navigasi disembunyikan, serta ukuran teks dikecilkan agar nama surah
+   * dan terjemahan tidak meluber tertutup kartu jadwal di bawahnya.
+   */
+  ringkas?: boolean;
 }
 
 export default function AyatShowcase({
   ayat,
   jedaMs = 14000,
   tampilkanMurottal = true,
+  reciter = SUBDIR_MUROTTAL_BAWAAN,
+  ringkas = false,
 }: AyatShowcaseProps) {
   const [indeks, setIndeks] = useState(0);
   const [animasiMasuk, setAnimasiMasuk] = useState(true);
@@ -40,7 +54,24 @@ export default function AyatShowcase({
   const totalAyat = ayat.length;
   const aman = totalAyat === 0 ? 0 : Math.min(indeks, totalAyat - 1);
   const ayatAktif = ayat[aman];
-  const urlAudio = ayatAktif ? urlAudioAyat(ayatAktif) : null;
+  // Daftar putar: kutipan rentang (mis. 5–6) diputar per ayat berurutan,
+  // bukan hanya ayat pertamanya — semuanya dengan suara reciter pilihan.
+  const daftarAudio = useMemo(
+    () => (ayatAktif ? daftarUrlAudioAyat(ayatAktif, reciter) : []),
+    [ayatAktif, reciter]
+  );
+  // Posisi ayat di dalam rentang yang sedang dilantunkan (0-based).
+  const [bagian, setBagian] = useState(0);
+  // Ganti reciter di tengah rentang: ulangi dari ayat pertama kutipan ini.
+  const reciterSebelumnya = useRef(reciter);
+  useEffect(() => {
+    if (reciterSebelumnya.current !== reciter) {
+      reciterSebelumnya.current = reciter;
+      setBagian(0);
+    }
+  }, [reciter]);
+  const urlAudio = daftarAudio[bagian] ?? null;
+  const totalBagian = daftarAudio.length;
 
   // Pergantian ayat dengan transisi cross-fade lembut
   const gantiKe = useCallback(
@@ -50,6 +81,7 @@ export default function AyatShowcase({
       if (timerGanti.current !== null) window.clearTimeout(timerGanti.current);
       timerGanti.current = window.setTimeout(() => {
         setIndeks(target);
+        setBagian(0);
         setKemajuan(0);
         setAnimasiMasuk(true);
       }, 250);
@@ -75,7 +107,7 @@ export default function AyatShowcase({
     gantiKe((aman - 1 + totalAyat) % totalAyat);
   }, [aman, totalAyat, gantiKe]);
 
-  // Autoplay Murottal setiap kali ayat aktif berganti
+  // Autoplay Murottal setiap kali ayat aktif / bagian rentang berganti
   useEffect(() => {
     if (!tampilkanMurottal || !autoplayMurottal || !urlAudio) return;
 
@@ -113,7 +145,7 @@ export default function AyatShowcase({
       isMounted = false;
       clearTimeout(jedaMulai);
     };
-  }, [aman, autoplayMurottal, tampilkanMurottal, urlAudio]);
+  }, [aman, bagian, autoplayMurottal, tampilkanMurottal, urlAudio]);
 
   // Buka blokir autoplay begitu ada sentuhan atau klik sembarang di layar
   useEffect(() => {
@@ -164,7 +196,7 @@ export default function AyatShowcase({
 
   return (
     <div
-      className="group relative flex h-full flex-col justify-between rounded-2xl bg-transparent p-2 sm:p-4 lg:p-6 transition-all duration-300"
+      className="group relative flex h-full min-h-0 flex-col justify-between rounded-2xl bg-transparent p-2 sm:p-4 lg:p-6 transition-all duration-300"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -182,20 +214,21 @@ export default function AyatShowcase({
       </div>
 
       {/* Header Ayat: Label, Status Murottal, dan Tombol Kontrol */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 pt-3">
         <div className="flex items-center gap-2.5">
           <span className="flex h-2.5 w-2.5 rounded-full bg-brass shadow-sm" />
           <span className="label-kecil font-bold tracking-wider text-forest-900">
             Ayat Pilihan
           </span>
-          {sedangPutar && (
+          {/* Mode ringkas (fullscreen TV): badge status disembunyikan. */}
+          {!ringkas && sedangPutar && (
             <span className="flex items-center gap-1.5 rounded-full border border-forest-600/30 bg-forest-100/90 px-2.5 py-0.5 text-[11px] font-semibold text-forest-800 backdrop-blur-sm">
               <span className="flex items-end gap-0.5 h-3">
                 <span className="w-0.5 h-2 bg-forest-700 animate-pulse" />
                 <span className="w-0.5 h-3 bg-forest-700 animate-pulse delay-75" />
                 <span className="w-0.5 h-1.5 bg-forest-700 animate-pulse delay-150" />
               </span>
-              <span>Murottal Berputar</span>
+              <span>Murottal Berputar{totalBagian > 1 ? ` ${bagian + 1}/${totalBagian}` : ""}</span>
             </span>
           )}
           {audioDiblokirPeramban && (
@@ -205,6 +238,8 @@ export default function AyatShowcase({
           )}
         </div>
 
+        {/* Mode ringkas (fullscreen TV): tombol autoplay & jeda disembunyikan. */}
+        {!ringkas && (
         <div className="flex items-center gap-2">
           {/* Tombol Toggle Autoplay Murottal */}
           {tampilkanMurottal && urlAudio && (
@@ -255,10 +290,11 @@ export default function AyatShowcase({
             </button>
           )}
         </div>
+        )}
       </div>
 
       {/* Konten Ayat Utama (Transparan menyatu dengan latar belakang) */}
-      <div className="my-auto py-5 lg:py-7">
+      <div className={`my-auto min-h-0 ${ringkas ? "py-2" : "py-5 lg:py-7"}`}>
         <div
           className={`transition-all duration-300 ease-out ${
             animasiMasuk
@@ -272,7 +308,11 @@ export default function AyatShowcase({
             dir="rtl"
             lang="ar"
             className={`font-uthmani text-right font-normal text-forest-900 select-none ${
-              ayatPanjang
+              ringkas
+                ? ayatPanjang
+                  ? "text-[clamp(1.2rem,2.2vw,1.9rem)] leading-[2.0]"
+                  : "text-[clamp(1.45rem,2.8vw,2.6rem)] leading-[2.0]"
+                : ayatPanjang
                 ? "text-[clamp(1.5rem,3.0vw,2.6rem)] leading-[2.3]"
                 : "text-[clamp(1.85rem,4.0vw,3.6rem)] leading-[2.2]"
             }`}
@@ -285,7 +325,7 @@ export default function AyatShowcase({
           </p>
 
           {/* Rujukan Surah dan Ayat */}
-          <div className="my-5 flex items-center gap-3">
+          <div className={`flex items-center gap-3 ${ringkas ? "my-2.5" : "my-5"}`}>
             <span className="h-px w-8 shrink-0 rounded-full bg-gradient-to-r from-brass/80 to-brass/20" />
             <span className="flex items-center gap-1.5">
               <span className="font-arabic text-base font-bold text-brass-600">
@@ -299,8 +339,11 @@ export default function AyatShowcase({
             <span className="h-px flex-1 rounded-full bg-gradient-to-r from-forest-900/15 to-transparent" />
           </div>
 
-          {/* Terjemahan Bahasa Indonesia */}
-          <p className="text-sm font-normal leading-relaxed text-ink-500 sm:text-base lg:max-w-[65ch]">
+          {/* Terjemahan Bahasa Indonesia — di mode ringkas dibatasi 3 baris
+              agar tidak meluber ke kartu jadwal di bawahnya. */}
+          <p className={`font-normal leading-relaxed text-ink-500 lg:max-w-[65ch] ${
+            ringkas ? "text-xs sm:text-sm line-clamp-3" : "text-sm sm:text-base"
+          }`}>
             &ldquo;{ayatAktif.idn}&rdquo;
           </p>
         </div>
@@ -315,14 +358,26 @@ export default function AyatShowcase({
           onPlay={() => setSedangPutar(true)}
           onPause={() => setSedangPutar(false)}
           onEnded={() => {
+            // Rentang multi-ayat: lanjut ke ayat berikutnya dalam kutipan
+            // yang sama; bila sudah ayat terakhir, jeda 1.5 detik lalu
+            // pindah ke kutipan berikutnya.
+            if (bagian + 1 < totalBagian) {
+              setBagian(bagian + 1);
+              return;
+            }
             setSedangPutar(false);
-            // Begitu lantunan selesai, tunggu 1.5 detik lalu lanjut ke ayat berikutnya
             if (timerLanjut.current !== null) window.clearTimeout(timerLanjut.current);
             timerLanjut.current = window.setTimeout(() => {
               ayatBerikutnya();
             }, 1500);
           }}
           onError={() => {
+            // Satu berkas gagal (network/404): coba ayat berikutnya dalam
+            // rentang yang sama agar tidak macet di ayat pertama.
+            if (bagian + 1 < totalBagian) {
+              setBagian(bagian + 1);
+              return;
+            }
             // Gagal muat berkas audio (network/CORS) — tandai sebagai tidak dapat diputar
             setSedangPutar(false);
             setAudioDiblokirPeramban(false);
@@ -330,8 +385,8 @@ export default function AyatShowcase({
         />
       )}
 
-      {/* Footer Navigasi Ayat */}
-      {totalAyat > 1 && (
+      {/* Footer Navigasi Ayat — disembunyikan di mode ringkas (fullscreen TV). */}
+      {!ringkas && totalAyat > 1 && (
         <div className="flex items-center justify-between border-t border-forest-900/10 pt-3.5">
           {/* Titik Indikator / Paginasi */}
           <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-[220px] sm:max-w-none">

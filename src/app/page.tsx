@@ -8,6 +8,7 @@ import {
 import { ambilProfil } from "@/lib/profil";
 import { getJadwalHarian, kunciTanggal } from "@/lib/prayer-times";
 import { resolveAdzanUrl } from "@/lib/azan";
+import { subdirMurottal } from "@/lib/murottal";
 import { ambilAyatAcak } from "@/lib/ayat";
 import { ringkasPapan } from "@/lib/papan";
 import CalligraphyBackdrop from "@/components/CalligraphyBackdrop";
@@ -88,6 +89,7 @@ export default async function Home() {
           )}
           reminderSuara={pengaturanSaklar(pengaturan, "reminder_suara")}
           tampilkanMurottal={pengaturanSaklar(pengaturan, "tampilkan_murottal")}
+          murottalReciter={subdirMurottal(pengaturan.murottal_reciter)}
           hijriahOffsetHari={hijriahOffsetHari}
         />
       </div>

@@ -279,6 +279,7 @@ async function main() {
     { key: "lokasi_default", value: "Jakarta" },
     { key: "adzan_enabled", value: "true" },
     { key: "adzan_audio_url", value: "" },
+    { key: "murottal_reciter", value: "alafasy" },
     {
       key: "running_text",
       value:

@@ -11,6 +11,7 @@ import {
 } from "@/lib/settings";
 import { cariKota, KOTA_INDONESIA } from "@/lib/kota";
 import { ID_ADZAN_KUSTOM, PILIHAN_ADZAN, urlSuaraValid } from "@/lib/azan";
+import { cariPilihanMurottal } from "@/lib/murottal";
 import { getJadwalHarian, kunciTanggal } from "@/lib/prayer-times";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,10 @@ const PEMERIKSA: Record<KunciPengaturan, (nilai: string) => HasilPeriksa> = {
     nilai === ID_ADZAN_KUSTOM || PILIHAN_ADZAN.some((p) => p.id === nilai)
       ? { ok: true, nilai }
       : { ok: false, pesan: "Pilihan suara adzan tidak dikenal" },
+  murottal_reciter: (nilai) =>
+    cariPilihanMurottal(nilai)
+      ? { ok: true, nilai }
+      : { ok: false, pesan: "Pilihan reciter murottal tidak dikenal" },
   adzan_audio_url: (nilai) => {
     const bersih = nilai.trim();
     if (bersih === "") return { ok: true, nilai: "" };

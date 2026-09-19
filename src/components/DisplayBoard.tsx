@@ -48,6 +48,8 @@ interface DisplayBoardProps {
   adzanAudioUrl: string;
   reminderSuara: boolean;
   tampilkanMurottal: boolean;
+  /** Subdirektori EveryAyah reciter murottal pilihan admin (lihat lib/murottal.ts). */
+  murottalReciter: string;
   /** Penyesuaian tanggal Hijriah (hari) dari pengaturan masjid. */
   hijriahOffsetHari: number;
 }
@@ -97,6 +99,7 @@ export default function DisplayBoard({
   adzanAudioUrl,
   reminderSuara,
   tampilkanMurottal,
+  murottalReciter,
   hijriahOffsetHari,
 }: DisplayBoardProps) {
   const { data: session } = useSession();
@@ -480,20 +483,22 @@ export default function DisplayBoard({
       {/* Konten Utama Grid: Kolom Kiri Ayat Pilihan & Kolom Kanan Jam & Hitung Mundur */}
       <main
         className={`grid flex-1 min-h-0 items-center gap-4 px-4 sm:px-8 lg:grid-cols-12 lg:gap-8 lg:px-12 ${
-          isFullscreen ? "py-1.5" : "py-3"
+          isFullscreen ? "py-1.5 overflow-hidden" : "py-3"
         }`}
       >
         {/* Kolom Kiri: Ayat Pilihan Showcase (Menyatu transparan dengan latar belakang) */}
-        <section className="flex flex-col justify-center lg:col-span-7">
+        <section className={`flex flex-col justify-center lg:col-span-7 ${isFullscreen ? "min-h-0 h-full overflow-hidden" : ""}`}>
           <AyatShowcase
             ayat={ayat}
             jedaMs={14000}
             tampilkanMurottal={tampilkanMurottal}
+            reciter={murottalReciter}
+            ringkas={isFullscreen}
           />
         </section>
 
         {/* Kolom Kanan: Papan Waktu Sekarang & Kotak Hitung Mundur Shalat (Semi-Transparan) */}
-        <section className="flex flex-col justify-center lg:col-span-5">
+        <section className={`flex flex-col justify-center lg:col-span-5 ${isFullscreen ? "min-h-0 h-full overflow-hidden" : ""}`}>
           <div className="surface flex flex-col rounded-2xl border border-forest-900/15 bg-white/45 p-5 shadow-sm backdrop-blur-md transition hover:border-forest-900/25 lg:p-6 overflow-y-auto">
             {/* Bagian 1: Waktu Sekarang */}
             <div>
@@ -600,8 +605,9 @@ export default function DisplayBoard({
               </div>
             )}
 
-            {/* Kontrol Audio Adzan & Pengingat */}
-            {(adzanAktif || reminderSuara) && (
+            {/* Kontrol Audio Adzan & Pengingat — disembunyikan di mode
+                fullscreen TV agar tampilan bersih dari tombol. */}
+            {(adzanAktif || reminderSuara) && !isFullscreen && (
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-forest-900/10 pt-3">
                 {reminderSuara && (
                   <span className="text-xs font-medium text-ink-500">

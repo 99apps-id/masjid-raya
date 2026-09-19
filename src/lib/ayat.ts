@@ -1,3 +1,5 @@
+import { SUBDIR_MUROTTAL_BAWAAN } from "@/lib/murottal";
+
 export interface Ayat {
   /** Nomor surah, dipakai untuk menyusun tautan audio murattal. */
   surahNomor: number;
@@ -408,13 +410,35 @@ function tigaDigit(nilai: number): string {
 }
 
 /**
- * Tautan murattal per ayat (Mishary Rashid Alafasy, 128 kbps) dari
- * everyayah.com. Untuk kutipan berupa rentang, yang diputar adalah ayat
- * pertamanya.
+ * Tautan murattal satu ayat dari EveryAyah. `subdir` menentukan suara
+ * reciter (lihat lib/murottal.ts); bawaan: Mishary Rashid Alafasy 128 kbps.
+ * Untuk kutipan berupa rentang, yang diputar adalah ayat pertamanya.
+ * Untuk memutar seluruh rentang, pakai daftarUrlAudioAyat().
  */
-export function urlAudioAyat(ayat: Ayat): string {
+export function urlAudioAyat(ayat: Ayat, subdir: string = SUBDIR_MUROTTAL_BAWAAN): string {
   const berkas = `${tigaDigit(ayat.surahNomor)}${tigaDigit(ayat.nomor)}`;
-  return `https://everyayah.com/data/Alafasy_128kbps/${berkas}.mp3`;
+  return `https://everyayah.com/data/${subdir}/${berkas}.mp3`;
+}
+
+/**
+ * Daftar putar murottal untuk satu kutipan: seluruh ayat dari `nomor`
+ * sampai `sampai` (bila ada) diurutkan menaik, satu URL per ayat, semuanya
+ * dengan suara reciter yang sama.
+ * Batas pengaman 20 ayat agar rentang salah ketik tidak membanjiri jaringan.
+ */
+export function daftarUrlAudioAyat(
+  ayat: Ayat,
+  subdir: string = SUBDIR_MUROTTAL_BAWAAN
+): string[] {
+  const akhir = ayat.sampai ?? ayat.nomor;
+  const mulai = Math.min(ayat.nomor, akhir);
+  const selesai = Math.min(Math.max(ayat.nomor, akhir), mulai + 19);
+  const daftar: string[] = [];
+  for (let n = mulai; n <= selesai; n++) {
+    const berkas = `${tigaDigit(ayat.surahNomor)}${tigaDigit(n)}`;
+    daftar.push(`https://everyayah.com/data/${subdir}/${berkas}.mp3`);
+  }
+  return daftar;
 }
 
 /** Ambil sejumlah ayat acak tanpa pengulangan. */

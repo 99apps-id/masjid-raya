@@ -18,6 +18,11 @@ import {
   PILIHAN_ADZAN_KUSTOM,
   resolveAdzanUrl,
 } from "@/lib/azan";
+import {
+  cariPilihanMurottal,
+  namaPilihanMurottal,
+  PILIHAN_MUROTTAL,
+} from "@/lib/murottal";
 import type { PrayerTimes } from "@/lib/waktu";
 
 interface BarisPengaturan {
@@ -214,6 +219,10 @@ export default function AdminPengaturanPage() {
 
   const urlAdzanAktif = resolveAdzanUrl(nilai.adzan_pilihan, nilai.adzan_audio_url);
   const labelAdzan = namaPilihanAdzan(nilai.adzan_pilihan, nilai.adzan_audio_url);
+
+  const murottalTerpilih =
+    cariPilihanMurottal(nilai.murottal_reciter) ?? PILIHAN_MUROTTAL[0]!;
+  const urlContohMurottal = `https://everyayah.com/data/${murottalTerpilih.subdir}/001001.mp3`;
 
   if (memuat) {
     return <p className="text-sm text-ink-400">Memuat pengaturan...</p>;
@@ -470,6 +479,60 @@ export default function AdminPengaturanPage() {
                 <p className="meta mt-2">
                   Hanya tautan https yang diterima. Tautan kustom selalu menang atas
                   pilihan bawaan.
+                </p>
+              </div>
+            </div>
+          </KartuAdmin>
+
+          {/* Suara murottal (reciter) */}
+          <KartuAdmin className="p-6 lg:p-8">
+            <div className="flex items-center gap-3">
+              <IkonSuara className="h-5 w-5 text-forest-600" />
+              <h2 className="section-title">Suara murottal</h2>
+            </div>
+            <div className="rule mt-4" />
+
+            <div className="mt-6 space-y-6">
+              <div>
+                <label htmlFor="murottal-reciter" className="field-label">
+                  Reciter (pengisi suara bacaan ayat)
+                </label>
+                <select
+                  id="murottal-reciter"
+                  className="field"
+                  value={murottalTerpilih.id}
+                  onChange={(e) => ubah("murottal_reciter", e.target.value)}
+                >
+                  {PILIHAN_MUROTTAL.map((pilihan) => (
+                    <option key={pilihan.id} value={pilihan.id}>
+                      {pilihan.nama} — {pilihan.keterangan}
+                    </option>
+                  ))}
+                </select>
+                <p className="meta mt-2">
+                  Suara aktif:{" "}
+                  <strong className="font-medium">
+                    {namaPilihanMurottal(nilai.murottal_reciter)}
+                  </strong>
+                  . Berlaku untuk seluruh ayat di papan informasi beranda
+                  setelah pengaturan disimpan.
+                </p>
+              </div>
+
+              <div>
+                <span className="field-label">
+                  Pratinjau — Al-Fatihah : 1 ({murottalTerpilih.nama})
+                </span>
+                <audio
+                  key={murottalTerpilih.subdir}
+                  src={urlContohMurottal}
+                  controls
+                  preload="none"
+                  className="w-full max-w-md"
+                />
+                <p className="meta mt-2">
+                  Tekan putar untuk memastikan suara reciter dapat dimuat
+                  sebelum disimpan.
                 </p>
               </div>
             </div>
