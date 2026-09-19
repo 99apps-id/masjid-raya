@@ -113,19 +113,20 @@ export function ringkasPapan(
     };
   }
 
-  // Sebelum waktu shalat pertama hari ini, seluruh hitungan digeser satu hari
-  // ke depan agar tidak menghasilkan angka negatif.
+  // Cari shalat berikutnya hari ini; bila semua sudah lewat, target adalah
+  // shalat pertama esok hari (geserHari = 1440 menit = satu hari penuh).
   const berikutnyaHariIni = baris.find((item) => item.menit > menitSekarang);
   const geserHari = berikutnyaHariIni ? 0 : SATU_HARI_MENIT;
 
   const berikutnya = berikutnyaHariIni ?? baris[0];
-  const detikSekarangAbs = detikSekarang + geserHari * 60;
+  // menitTargetAbs: target waktu shalat dalam menit absolut (sudah termasuk
+  // geser hari bila diperlukan).
   const menitTargetAbs = berikutnya.menit + geserHari;
 
-  const hitungMundur = Math.max(
-    0,
-    menitTargetAbs * 60 - detikSekarangAbs
-  );
+  // Hitung mundur: selisih antara target (dalam detik) dengan detik berjalan.
+  // CATATAN: geserHari hanya ditambahkan ke sisi target, BUKAN ke detikSekarang,
+  // agar tidak saling mengurangi (cancels out) yang menyebabkan hasil selalu 0.
+  const hitungMundur = Math.max(0, menitTargetAbs * 60 - detikSekarang);
 
   const sebelumnyaHariIni = [...baris]
     .reverse()
@@ -135,14 +136,22 @@ export function ringkasPapan(
     : baris[baris.length - 1].menit;
 
   const totalInterval = Math.max(1, menitTargetAbs - menitAwalAbs);
+
+  // Kemajuan: bila menitSekarang < menitAwalAbs (lewat tengah malam sebelum
+  // shalat pertama), tambahkan satu hari agar posisi absolut benar.
+  const menitSekarangEfektif =
+    menitSekarang >= menitAwalAbs
+      ? menitSekarang
+      : menitSekarang + SATU_HARI_MENIT;
   const lewat = Math.max(
     0,
-    Math.min(totalInterval, Math.floor(detikSekarangAbs / 60) - menitAwalAbs)
+    Math.min(totalInterval, menitSekarangEfektif - menitAwalAbs)
   );
   const persen = Math.round((lewat / totalInterval) * 100);
 
+  // Iqomah terjadi tepat setelah waktu shalat — tidak memerlukan geser hari.
   const sedangIqomah = baris.find((item) => {
-    const lewatIqomah = detikSekarangAbs - item.menit * 60;
+    const lewatIqomah = detikSekarang - item.menit * 60;
     return lewatIqomah >= 0 && lewatIqomah <= iqomahMenit * 60;
   });
 
@@ -156,7 +165,7 @@ export function ringkasPapan(
     iqomahKey: sedangIqomah?.key ?? null,
     iqomahNama: sedangIqomah?.nama ?? null,
     iqomahSisa: sedangIqomah
-      ? Math.max(0, iqomahMenit * 60 - (detikSekarangAbs - sedangIqomah.menit * 60))
+      ? Math.max(0, iqomahMenit * 60 - (detikSekarang - sedangIqomah.menit * 60))
       : null,
   };
 }
