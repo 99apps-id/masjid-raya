@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Scheherazade+New:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* Nilai dasar yang dipakai langsung oleh CSS tulis-tangan di bawah. */
@@ -50,9 +49,13 @@
   --color-gold: #fbbf24;
   --color-gold-dark: #b45309;
 
-  --font-sans: "Inter", var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-arabic: "Amiri", var(--font-amiri), "Traditional Arabic", "Scheherazade New", "Noto Naskh Arabic", "Times New Roman", serif;
-  --font-uthmani: "Scheherazade New", "Amiri Quran", "KFGQPC Uthmanic Script HAFS", "Amiri", "Traditional Arabic", serif;
+  --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Naskh untuk label Arab pendek: Amiri 700, lalu cadangan jernih. */
+  --font-arabic: var(--font-amiri), "Amiri", var(--font-scheherazade), "Scheherazade New", var(--font-lateef), "Lateef", "Noto Naskh Arabic", serif;
+  /* Kaligrafi Utsmani untuk ayat: Amiri Quran primer, Scheherazade cadangan harakat. */
+  --font-uthmani: var(--font-uthmani), "Amiri Quran", var(--font-scheherazade), "Scheherazade New", var(--font-amiri), "Amiri", var(--font-lateef), "Lateef", "Noto Naskh Arabic", serif;
+  /* Kufi geometris hanya untuk ornamen / watermark, bukan ayat panjang. */
+  --font-kufi: var(--font-kufi), "Reem Kufi", var(--font-amiri), "Amiri", serif;
 }
 
 html,
@@ -76,12 +79,21 @@ body {
 }
 
 .arabic {
-  font-family: var(--font-amiri), "Amiri", "Times New Roman", serif;
+  font-family: var(--font-arabic);
   line-height: 1.9;
 }
 
+.font-arabic {
+  font-family: var(--font-arabic);
+}
+
+.font-kufi {
+  font-family: var(--font-kufi);
+  letter-spacing: 0;
+}
+
 .font-uthmani {
-  font-family: var(--font-uthmani), "Scheherazade New", "Amiri Quran", "KFGQPC Uthmanic Script HAFS", "Amiri", "Traditional Arabic", serif;
+  font-family: var(--font-uthmani);
   /* Aktifkan fitur OpenType kaligrafi Utsmani:
      liga  = ligatur standar, rlig = ligatur wajib, calt = alternasi kontekstual,
      cswh  = glyph alternatif swash, kern = kerning optik */

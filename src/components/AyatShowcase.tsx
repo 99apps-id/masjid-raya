@@ -34,6 +34,8 @@ export default function AyatShowcase({
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const timerMaju = useRef<NodeJS.Timeout | null>(null);
+  const timerGanti = useRef<number | null>(null);
+  const timerLanjut = useRef<number | null>(null);
 
   const totalAyat = ayat.length;
   const aman = totalAyat === 0 ? 0 : Math.min(indeks, totalAyat - 1);
@@ -45,7 +47,8 @@ export default function AyatShowcase({
     (target: number) => {
       if (target === aman || totalAyat === 0) return;
       setAnimasiMasuk(false);
-      window.setTimeout(() => {
+      if (timerGanti.current !== null) window.clearTimeout(timerGanti.current);
+      timerGanti.current = window.setTimeout(() => {
         setIndeks(target);
         setKemajuan(0);
         setAnimasiMasuk(true);
@@ -53,6 +56,14 @@ export default function AyatShowcase({
     },
     [aman, totalAyat]
   );
+
+  // Bersihkan timer pergantian bila komponen dilepas.
+  useEffect(() => {
+    return () => {
+      if (timerGanti.current !== null) window.clearTimeout(timerGanti.current);
+      if (timerLanjut.current !== null) window.clearTimeout(timerLanjut.current);
+    };
+  }, []);
 
   const ayatBerikutnya = useCallback(() => {
     if (totalAyat <= 1) return;
@@ -255,11 +266,12 @@ export default function AyatShowcase({
               : "-translate-y-2 opacity-0"
           }`}
         >
-          {/* Teks Arab Kaligrafi Utsmani */}
+          {/* Teks Arab Kaligrafi Utsmani — Amiri Quran hanya 400, jadi jangan
+              faux-bold agar goresan kaligrafi tetap ramping autentik. */}
           <p
             dir="rtl"
             lang="ar"
-            className={`font-uthmani text-right font-bold text-forest-900 select-none ${
+            className={`font-uthmani text-right font-normal text-forest-900 select-none ${
               ayatPanjang
                 ? "text-[clamp(1.5rem,3.0vw,2.6rem)] leading-[2.3]"
                 : "text-[clamp(1.85rem,4.0vw,3.6rem)] leading-[2.2]"
@@ -305,7 +317,8 @@ export default function AyatShowcase({
           onEnded={() => {
             setSedangPutar(false);
             // Begitu lantunan selesai, tunggu 1.5 detik lalu lanjut ke ayat berikutnya
-            window.setTimeout(() => {
+            if (timerLanjut.current !== null) window.clearTimeout(timerLanjut.current);
+            timerLanjut.current = window.setTimeout(() => {
               ayatBerikutnya();
             }, 1500);
           }}

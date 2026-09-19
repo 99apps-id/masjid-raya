@@ -6,7 +6,9 @@ export default withAuth({
   },
   callbacks: {
     authorized: ({ token, req }) => {
-      if (!token) return false;
+      // Token yatim (akun dihapus / sesi dimatikan di jwt callback) tidak
+      // punya sub — tolak walau objek token masih truthy.
+      if (!token || !token.sub) return false;
 
       const path = req.nextUrl.pathname;
       const role = token.role as string | undefined;

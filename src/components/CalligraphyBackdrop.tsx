@@ -32,7 +32,8 @@ export default function CalligraphyBackdrop() {
       </svg>
 
       <div className="absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center">
-        <span className="arabic select-none whitespace-nowrap text-[clamp(7rem,20vw,26rem)] font-bold leading-none text-forest-900/[0.06]">
+        {/* Watermark ornamen memakai Kufi geometris — bukan untuk ayat panjang. */}
+        <span className="font-kufi select-none whitespace-nowrap text-[clamp(7rem,20vw,26rem)] font-bold leading-none text-forest-900/[0.06]">
           المسجد
         </span>
       </div>

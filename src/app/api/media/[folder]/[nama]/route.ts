@@ -49,6 +49,12 @@ export async function GET(
 
   const mime = mimeDariEkstensi(nama);
 
+  // Tipe tak dikenal: tolak daripada menyajikan application/octet-stream
+  // inline (walau nosniff, inline octet-stream berisiko diunduh/misrender).
+  if (mime === "application/octet-stream") {
+    return NextResponse.json({ error: "Berkas tidak ditemukan" }, { status: 404 });
+  }
+
   return new NextResponse(new Uint8Array(isi), {
     status: 200,
     headers: {

@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.user.update({
       where: { id: pengguna.id },
-      data: { password: await bcrypt.hash(sandiBaru, 10) },
+      data: { password: await bcrypt.hash(sandiBaru, 12) },
     });
 
     // Berhasil: buang kuota kesalahan supaya tidak menghukum pemiliknya.

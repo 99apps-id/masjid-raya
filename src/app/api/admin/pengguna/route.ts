@@ -40,7 +40,7 @@ async function postHandler(req: NextRequest) {
         name: d.nama,
         email: d.email,
         role: d.role,
-        password: await bcrypt.hash(d.sandi, 10),
+        password: await bcrypt.hash(d.sandi, 12),
         emailVerified: new Date(),
       },
       select: PILIH_AMAN,

@@ -39,13 +39,21 @@ async function siapkanAkun({
   const sudahAda = await prisma.user.findUnique({ where: { email } });
 
   if (!sudahAda) {
+    // Di produksi, tolak sandi bawaan yang mudah ditebak — operator wajib
+    // menyetel SEED_*_PASSWORD. Di development, sandi bawaan tetap diizinkan
+    // agar instalasi awal mudah.
+    if (!sandiDariEnv && process.env.NODE_ENV === "production") {
+      throw new Error(
+        `Seed dibatalkan: set ${envVar} di produksi (tidak boleh memakai sandi bawaan untuk ${email}).`
+      );
+    }
     const sandi = sandiDariEnv || sandiBawaan;
     await prisma.user.create({
       data: {
         email,
         name,
         role,
-        password: await bcrypt.hash(sandi, 10),
+        password: await bcrypt.hash(sandi, 12),
         emailVerified: new Date(),
       },
     });
@@ -75,7 +83,7 @@ async function siapkanAkun({
   if (!cocok) {
     await prisma.user.update({
       where: { email },
-      data: { password: await bcrypt.hash(sandiDariEnv, 10) },
+      data: { password: await bcrypt.hash(sandiDariEnv, 12) },
     });
     console.log(`Sandi akun diselaraskan dengan ${envVar}: ${email}`);
   }

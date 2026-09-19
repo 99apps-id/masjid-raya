@@ -101,8 +101,9 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!pengguna || !pengguna.password) {
-          // Akun hilang atau tidak lagi bisa masuk: matikan token.
-          return { ...token, role: undefined, sub: undefined };
+          // Akun hilang atau tidak lagi bisa masuk: matikan token seketika.
+          // Middleware menolak token tanpa sub, sehingga /akun/* ikut tertutup.
+          return { ...token, role: undefined, sub: undefined, exp: 0, cek: Date.now() };
         }
 
         token.role = pengguna.role;

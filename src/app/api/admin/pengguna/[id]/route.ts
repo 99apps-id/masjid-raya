@@ -40,7 +40,7 @@ async function putHandler(req: NextRequest, { params }: KonteksRute<{ id: string
   if (d.email !== undefined) data.email = d.email;
   if (d.role !== undefined) data.role = d.role;
   // Sandi hanya di-hash bila memang dikirim non-kosong (lihat sandiOpsional).
-  if (d.sandi !== undefined) data.password = await bcrypt.hash(d.sandi, 10);
+  if (d.sandi !== undefined) data.password = await bcrypt.hash(d.sandi, 12);
 
   if (Object.keys(data).length === 0) {
     return NextResponse.json(

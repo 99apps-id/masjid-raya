@@ -48,6 +48,12 @@ function teksOpsional(maks: number) {
     );
 }
 
+/** Folder unggahan yang sah — selaras dengan JENIS_UPLOAD di lib/upload.ts. */
+const FOLDER_UNGGAHAN = "(?:ustadz|kegiatan|berita|adzan|profil)";
+const POLA_MEDIA = new RegExp(
+  `^\\/api\\/media\\/${FOLDER_UNGGAHAN}\\/[A-Za-z0-9][A-Za-z0-9._-]{0,127}$`
+);
+
 /** Tautan berkas yang disimpan di database: hasil unggahan kita atau https. */
 function tautanBerkas(nama: string) {
   return z
@@ -59,7 +65,7 @@ function tautanBerkas(nama: string) {
     .refine(
       (nilai) =>
         nilai === null ||
-        /^\/api\/media\/[A-Za-z0-9_-]+\/[A-Za-z0-9._-]+$/.test(nilai) ||
+        (POLA_MEDIA.test(nilai) && !nilai.includes("..")) ||
         (() => {
           try {
             return new URL(nilai).protocol === "https:";
@@ -205,7 +211,7 @@ function tautanBerkasWajib(nama: string) {
     .max(500, `${nama} maksimal 500 karakter`)
     .refine(
       (nilai) =>
-        /^\/api\/media\/[A-Za-z0-9_-]+\/[A-Za-z0-9._-]+$/.test(nilai) ||
+        (POLA_MEDIA.test(nilai) && !nilai.includes("..")) ||
         (() => {
           try {
             return new URL(nilai).protocol === "https:";
@@ -280,7 +286,7 @@ export const petugasBuatSchema = petugasSchema.extend({
 });
 
 export const profilSchema = z
-  .object({
+  .strictObject({
     nama: teksWajib(160, "Nama masjid"),
     deskripsi: teksOpsional(4000),
     visi: teksOpsional(2000),

@@ -147,14 +147,20 @@ export default function DisplayBoard({
 
   const segarkanJadwal = useCallback(async () => {
     try {
-      const res = await fetch("/api/jadwal", { cache: "no-store" });
+      // Pertahankan lokasi yang sedang tampil; tanpa ?lokasi= refresh akan
+      // jatuh kembali ke lokasi default bila papan dibuka untuk kota lain.
+      const lokasi = jadwalAwal?.lokasi ?? jadwal?.lokasi;
+      const url = lokasi
+        ? `/api/jadwal?lokasi=${encodeURIComponent(lokasi)}`
+        : "/api/jadwal";
+      const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) return;
       const data = (await res.json()) as JadwalHarian;
       if (data && data.lokasi) setJadwal(data);
     } catch {
       // Biarkan jadwal yang sedang tampil bila jaringan bermasalah.
     }
-  }, []);
+  }, [jadwal?.lokasi, jadwalAwal?.lokasi]);
 
   useEffect(() => {
     const timer = setInterval(segarkanJadwal, JEDA_SEGARKAN_MS);
@@ -306,7 +312,14 @@ export default function DisplayBoard({
                     </Link>
                     <button
                       type="button"
-                      onClick={() => signOut()}
+                      onClick={async () => {
+                        try {
+                          await signOut();
+                        } catch {
+                          // Abaikan kegagalan logout sisi klien; pengguna
+                          // sudah diarahkan ke /login oleh next-auth.
+                        }
+                      }}
                       className="btn btn-quiet py-1.5 px-3 text-xs sm:text-sm"
                     >
                       Keluar
@@ -407,7 +420,13 @@ export default function DisplayBoard({
                   </Link>
                   <button
                     type="button"
-                    onClick={() => signOut()}
+                    onClick={async () => {
+                      try {
+                        await signOut();
+                      } catch {
+                        // Abaikan kegagalan logout sisi klien.
+                      }
+                    }}
                     className="btn btn-quiet py-2 text-xs"
                   >
                     Keluar

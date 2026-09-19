@@ -75,16 +75,28 @@ function kenaliBerkas(isi: Uint8Array): JenisBerkas | null {
   }
   // Ogg (Vorbis/Opus)
   if (teks(0, 4) === "OggS") return { ekstensi: "ogg", mime: "audio/ogg" };
-  // MP4/M4A: kotak "ftyp" pada byte 4
+  // MP4/M4A: kotak "ftyp" pada byte 4. Terima merek umum agar berkas valid
+  // (isom, iso2, dash, 3gp, qt, M4V, ...) tidak ditolak sebagai palsu.
   if (teks(4, 4) === "ftyp") {
-    const merek = teks(8, 3);
-    if (merek === "M4A" || merek === "mp4" || merek === "iso") {
+    const merek = teks(8, 4).replace(/\0/g, "").trim();
+    if (
+      /^(M4A|M4V|mp4|isom|iso2|iso3|dash|3gp|3g2|qt|mmp4|f4v)$/i.test(merek) ||
+      merek === "iso"
+    ) {
       return { ekstensi: "m4a", mime: "audio/mp4" };
     }
   }
-  // MP3: tag ID3 atau sinkronisasi bingkai (0xFFEx/0xFFFx)
+  // MP3: tag ID3 atau sinkronisasi bingkai yang valid (0xFF + 3 bit atas 0xE0).
+  // Tolak pola longgar FF E0 yang sering false-positive: verifikasi bit versi
+  // MPEG (tidak 01) dan lapisan (tidak 00) agar biner acak tidak lolos.
   if (teks(0, 3) === "ID3") return { ekstensi: "mp3", mime: "audio/mpeg" };
-  if (isi[0] === 0xff && (isi[1]! & 0xe0) === 0xe0) {
+  if (
+    isi[0] === 0xff &&
+    isi.length > 2 &&
+    (isi[1]! & 0xe0) === 0xe0 &&
+    (isi[1]! & 0x18) !== 0x08 &&
+    (isi[1]! & 0x06) !== 0x00
+  ) {
     return { ekstensi: "mp3", mime: "audio/mpeg" };
   }
 
@@ -108,8 +120,19 @@ export type HasilUnggahan =
 
 /** Direktori dasar penyimpanan; bisa dialihkan lewat env UPLOAD_DIR. */
 export function direktoriUnggahan(): string {
+  const bawaan = path.join(process.cwd(), "uploads");
   const dariEnv = process.env.UPLOAD_DIR?.trim();
-  return dariEnv ? path.resolve(dariEnv) : path.join(process.cwd(), "uploads");
+  if (!dariEnv) return bawaan;
+  const hasil = path.resolve(dariEnv);
+  // Tolak konfigurasi berbahaya: root drive, root sistem, atau terlalu pendek.
+  const akar = path.parse(hasil).root;
+  if (hasil === akar || hasil.length < 8) {
+    console.error(
+      `UPLOAD_DIR "${dariEnv}" tidak aman (mengarah ke root); memakai uploads/ bawaan.`
+    );
+    return bawaan;
+  }
+  return hasil;
 }
 
 /**
