@@ -339,9 +339,10 @@ export default function AyatShowcase({
             <span className="h-px flex-1 rounded-full bg-gradient-to-r from-forest-900/15 to-transparent" />
           </div>
 
-          {/* Terjemahan Bahasa Indonesia — di mode ringkas dibatasi 3 baris
+          {/* Terjemahan Bahasa Indonesia — Inter, disengaja tidak mengikuti
+              font UI agar tidak berubah. Di mode ringkas dibatasi 3 baris
               agar tidak meluber ke kartu jadwal di bawahnya. */}
-          <p className={`font-normal leading-relaxed text-ink-500 lg:max-w-[65ch] ${
+          <p className={`font-inter font-normal leading-relaxed text-ink-500 lg:max-w-[65ch] ${
             ringkas ? "text-xs sm:text-sm line-clamp-3" : "text-sm sm:text-base"
           }`}>
             &ldquo;{ayatAktif.idn}&rdquo;

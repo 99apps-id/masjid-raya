@@ -79,7 +79,7 @@ export default async function BeritaDetailPage({
           )}
         </div>
 
-        <h1 className="mt-5 text-3xl font-semibold leading-tight tracking-tight text-forest-900 sm:text-4xl">
+        <h1 className="mt-5 font-display text-3xl leading-tight text-forest-900 sm:text-4xl">
           {berita.judul}
         </h1>
 

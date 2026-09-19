@@ -268,7 +268,7 @@ export default function DisplayBoard({
             dekoratif
           />
           <div className="min-w-0">
-            <h1 className="truncate text-lg font-bold tracking-tight text-forest-950 sm:text-2xl">
+            <h1 className="truncate font-display text-xl text-forest-950 sm:text-2xl">
               {namaMasjid}
             </h1>
             {alamat && (
@@ -535,7 +535,7 @@ export default function DisplayBoard({
                   <span className="text-[10px] font-extrabold uppercase tracking-widest text-forest-700">
                     Shalat Berikutnya
                   </span>
-                  <h3 className="mt-0.5 text-[clamp(1.4rem,2.8vw,2.2rem)] font-black tracking-tight text-forest-950 leading-tight">
+                  <h3 className="mt-0.5 font-display text-[clamp(1.4rem,2.8vw,2.2rem)] text-forest-950 leading-tight">
                     {ringkasan.berikutnyaNama}
                   </h3>
                 </div>

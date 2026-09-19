@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import {
   Inter,
+  Plus_Jakarta_Sans,
+  Marcellus,
   Amiri,
   Amiri_Quran,
   Scheherazade_New,
@@ -24,10 +26,30 @@ import { ambilProfil, ikonBranding } from "@/lib/profil";
  * - Reem Kufi: ornamen / watermark kaligrafi geometris (bukan ayat panjang).
  * - Lateef: fallback mungil yang tetap manis bila ketiga di atas gagal.
  */
+/**
+ * Font Latin: Plus Jakarta Sans (karya desainer Indonesia) untuk seluruh
+ * UI/teks Latin — lebih berkarakter dari Inter namun tetap sangat terbaca
+ * di TV maupun ponsel. Marcellus untuk judul hero (nama masjid, judul
+ * halaman, nama shalat berikutnya): serif pahatan klasik yang selaras
+ * dengan estetika arsitektur masjid. Inter dipertahankan khusus untuk
+ * terjemahan ayat agar tidak berubah.
+ */
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
+});
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-plusjakarta",
+});
+const marcellus = Marcellus({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+  variable: "--font-marcellus",
 });
 const amiri = Amiri({
   subsets: ["arabic", "latin"],
@@ -94,7 +116,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${inter.variable} ${amiri.variable} ${amiriQuran.variable} ${scheherazade.variable} ${kufi.variable} ${lateef.variable}`}
+      className={`${inter.variable} ${plusJakarta.variable} ${marcellus.variable} ${amiri.variable} ${amiriQuran.variable} ${scheherazade.variable} ${kufi.variable} ${lateef.variable}`}
     >
       <body className="min-h-dvh flex flex-col font-sans antialiased">
         <AuthProvider>{children}</AuthProvider>

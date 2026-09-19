@@ -49,7 +49,9 @@
   --color-gold: #fbbf24;
   --color-gold-dark: #b45309;
 
-  --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-plusjakarta), "Plus Jakarta Sans", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Judul hero: Marcellus (hanya 400 — jangan dipasangkan font-bold/black). */
+  --font-display: var(--font-marcellus), "Marcellus", Georgia, "Times New Roman", serif;
   /* Naskh untuk label Arab pendek: Amiri 700, lalu cadangan jernih. */
   --font-arabic: var(--font-amiri), "Amiri", var(--font-scheherazade), "Scheherazade New", var(--font-lateef), "Lateef", "Noto Naskh Arabic", serif;
   /* Kaligrafi Utsmani untuk ayat: Amiri Quran primer, Scheherazade cadangan harakat. */
@@ -90,6 +92,11 @@ body {
 .font-kufi {
   font-family: var(--font-kufi);
   letter-spacing: 0;
+}
+
+/* Terjemahan ayat: Inter — disengaja tidak mengikuti font UI agar tidak berubah. */
+.font-inter {
+  font-family: var(--font-inter), "Inter", system-ui, sans-serif;
 }
 
 .font-uthmani {
@@ -210,13 +217,13 @@ body {
     @apply mx-auto w-full max-w-7xl px-6 py-12 lg:px-8 lg:py-16;
   }
 
-  /* Judul halaman: label kecil kuningan, lalu judul hijau tua. */
+  /* Judul halaman: label kecil kuningan, lalu judul hijau tua berfont display. */
   .kicker {
     @apply text-xs font-semibold uppercase tracking-widest text-brass;
   }
 
   .page-title {
-    @apply text-4xl font-semibold leading-tight tracking-tight text-forest-900 sm:text-5xl;
+    @apply font-display text-4xl leading-tight text-forest-900 sm:text-5xl;
   }
 
   .page-lead {

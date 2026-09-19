@@ -39,7 +39,7 @@ export default async function LoginPage() {
             className="mx-auto h-12 w-12 text-forest-700"
             dekoratif
           />
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-forest-900">
+          <h1 className="mt-4 font-display text-2xl text-forest-900">
             {branding.nama}
           </h1>
           <p className="mt-2 text-sm text-ink-500">
