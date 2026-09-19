@@ -91,7 +91,16 @@ export async function generateMetadata(): Promise<Metadata> {
   const ikon = ikonBranding(branding);
 
   return {
-    metadataBase: new URL(process.env.NEXTAUTH_URL ?? "http://localhost:3000"),
+    metadataBase: new URL(
+      process.env.NEXTAUTH_URL ??
+        (process.env.NODE_ENV === "production"
+          ? (() => {
+              throw new Error(
+                "NEXTAUTH_URL wajib diisi di produksi. Set URL aplikasi."
+              );
+            })()
+          : "http://localhost:3000")
+    ),
     title: {
       default: branding.nama,
       template: `%s | ${branding.nama}`,

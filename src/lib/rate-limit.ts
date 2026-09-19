@@ -77,12 +77,21 @@ export function hapusBatasLaju(kunci: string): void {
 }
 
 /**
- * Ambil alamat klien dari header proxy. Dipakai sebagai bagian kunci pembatas
- * laju; bila tidak tersedia, jatuh ke "tidak-diketahui" sehingga pembatasnya
- * tetap berlaku secara global, bukan terbuka.
+ * Ambil alamat klien. Secara default header proxy seperti `X-Forwarded-For`
+ * tidak dipercaya karena dapat dipalsukan oleh klien langsung; gunakan
+ * `percayaProxy = true` hanya bila aplikasi dijalankan di belakang proksi
+ * tepercaya (mis. Vercel, Cloudflare, nginx dengan header yang di-overwrite).
  */
-export function alamatKlien(header: Headers): string {
-  const diteruskan = header.get("x-forwarded-for");
-  if (diteruskan) return diteruskan.split(",")[0]!.trim();
-  return header.get("x-real-ip")?.trim() || "tidak-diketahui";
+export function alamatKlien(
+  header: Headers,
+  percayaProxy = false
+): string {
+  if (percayaProxy) {
+    const diteruskan = header.get("x-forwarded-for");
+    if (diteruskan) return diteruskan.split(",")[0]!.trim();
+    return header.get("x-real-ip")?.trim() || "tidak-diketahui";
+  }
+  // Tanpa proksi tepercaya, gunakan fallback yang tetap melindungi dengan
+  // batas per akun (lihat auth.ts) walau alamatnya generik.
+  return "tidak-diketahui";
 }

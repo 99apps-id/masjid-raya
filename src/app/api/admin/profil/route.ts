@@ -10,7 +10,17 @@ export const dynamic = "force-dynamic";
 async function ambilAtauBuat() {
   const ada = await prisma.profilMasjid.findFirst({ orderBy: { createdAt: "asc" } });
   if (ada) return ada;
-  return prisma.profilMasjid.create({ data: {} });
+  
+  try {
+    return await prisma.profilMasjid.create({ data: {} });
+  } catch (error) {
+    // Jika permintaan lain sudah membuat profil saat bersamaan, ambil yang
+    // sudah ada. Tanpa unique constraint pada level database, baris duplikat
+    // masih mungkin terjadi; `findFirst` mengembalikan yang tertua.
+    const kembali = await prisma.profilMasjid.findFirst({ orderBy: { createdAt: "asc" } });
+    if (!kembali) throw error;
+    return kembali;
+  }
 }
 
 async function getHandler() {

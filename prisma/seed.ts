@@ -11,14 +11,12 @@ const AKUN_AWAL = [
     name: "Super Admin",
     role: "admin",
     envVar: "SEED_ADMIN_PASSWORD",
-    sandiBawaan: "admin123",
   },
   {
     email: "pengurus@masjidrayapro.com",
     name: "Bendahara Masjid",
     role: "pengurus",
     envVar: "SEED_PENGURUS_PASSWORD",
-    sandiBawaan: "pengurus123",
   },
 ];
 
@@ -33,27 +31,27 @@ async function siapkanAkun({
   name,
   role,
   envVar,
-  sandiBawaan,
 }: (typeof AKUN_AWAL)[number]) {
   const sandiDariEnv = process.env[envVar];
   const sudahAda = await prisma.user.findUnique({ where: { email } });
 
   if (!sudahAda) {
-    // Di produksi, tolak sandi bawaan yang mudah ditebak — operator wajib
-    // menyetel SEED_*_PASSWORD. Di development, sandi bawaan tetap diizinkan
-    // agar instalasi awal mudah.
-    if (!sandiDariEnv && process.env.NODE_ENV === "production") {
+    // Jangan pernah gunakan sandi bawaan. Di semua lingkungan (dev maupun
+    // produksi), seed mengharuskan variabel lingkungan diset — jika tidak,
+    // akun tidak dibuat dan proses dihentikan supaya operator tidak
+    // tidak sengaja menjalankan seed dengan sandi default yang mudah ditebak.
+    if (!sandiDariEnv) {
       throw new Error(
-        `Seed dibatalkan: set ${envVar} di produksi (tidak boleh memakai sandi bawaan untuk ${email}).`
+        `Seed dibatalkan: set ${envVar} untuk akun ${email}.` +
+        " Tidak ada sandi bawaan yang aman untuk digunakan."
       );
     }
-    const sandi = sandiDariEnv || sandiBawaan;
     await prisma.user.create({
       data: {
         email,
         name,
         role,
-        password: await bcrypt.hash(sandi, 12),
+        password: await bcrypt.hash(sandiDariEnv, 12),
         emailVerified: new Date(),
       },
     });

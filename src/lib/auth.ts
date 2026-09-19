@@ -33,7 +33,11 @@ function ambilAlamat(req: NextApiRequest | undefined): string {
     if (typeof nilai === "string") header.set(nama, nilai);
     else if (Array.isArray(nilai)) header.set(nama, nilai.join(","));
   }
-  return alamatKlien(header);
+  // Produksi biasanya di belakang proksi (Vercel, nginx, Cloudflare) yang
+  // menetapkan X-Forwarded-For secara tepercaya; di sini kita percaya header
+  // tersebut agar batas laju per-IP tetap berguna. Perlindungan utama tetap
+  // pada batas per-akun (10 percobaan / 15 menit).
+  return alamatKlien(header, true);
 }
 
 export const authOptions: NextAuthOptions = {

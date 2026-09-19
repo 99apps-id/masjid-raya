@@ -20,6 +20,20 @@ export async function bacaTubuh<Skema extends z.ZodTypeAny>(
   req: Request,
   skema: Skema
 ): Promise<HasilBaca<z.output<Skema>>> {
+  // Batasi ukuran badan permintaan untuk mencegah DoS melalui payload JSON
+  // yang sangat besar. 100 KB lebih cukup untuk seluruh skema yang ada.
+  const ukuranMaks = 100 * 1024;
+  const panjang = req.headers.get("content-length");
+  if (panjang && Number(panjang) > ukuranMaks) {
+    return {
+      ok: false,
+      respons: NextResponse.json(
+        { error: `Badan permintaan terlalu besar (maksimal ${Math.round(ukuranMaks / 1024)} KB)` },
+        { status: 413 }
+      ),
+    };
+  }
+
   let mentah: unknown;
   try {
     mentah = await req.json();
