@@ -43,7 +43,7 @@ export default async function Home() {
 
   const [profil, jadwal] = await Promise.all([
     prisma.profilMasjid.findFirst().catch(() => null),
-    getJadwalHarian(pengaturan.lokasi_default, kunciTanggal(), {
+    getJadwalHarian(pengaturan.lokasi_default || "Jakarta", kunciTanggal(), {
       hijriahOffsetHari,
     }),
   ]);

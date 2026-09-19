@@ -40,16 +40,11 @@ export async function GET(request: NextRequest) {
     }
 
     const pengaturan = await getPetaPengaturan();
-    const kanonik = normalisasiLokasi(hasil.data.lokasi ?? pengaturan.lokasi_default);
+    let kanonik = normalisasiLokasi(hasil.data.lokasi ?? pengaturan.lokasi_default ?? "Jakarta");
 
-    // Lokasi di luar katalog ditolak pada endpoint publik: perhitungan hanya
-    // masuk akal untuk koordinat yang dikenal, sekaligus mencegah penyalahgunaan
-    // sebagai pembangkit baris database.
+    // Jika lokasi tidak memiliki koordinat, gunakan default Jakarta
     if (!kanonik.koordinat) {
-      return NextResponse.json(
-        { error: "Lokasi tidak dikenal", detail: "Pilih kota dari daftar yang tersedia" },
-        { status: 400 }
-      );
+      kanonik = normalisasiLokasi("Jakarta");
     }
 
     const sumber: SumberJadwal =

@@ -347,7 +347,13 @@ export default function AyatShowcase({
             dijeda ? "opacity-45" : "opacity-100"
           }`}
           style={{
-            width: sedangPutar ? "100%" : totalAyat > 1 ? `${kemajuan}%` : "100%",
+            width: sedangPutar
+              ? surahAktif && totalBagian > 1
+                ? `${Math.round(((bagian + 1) / totalBagian) * 100)}%`
+                : "100%"
+              : totalAyat > 1
+                ? `${kemajuan}%`
+                : "100%",
             transitionDuration: dijeda ? "300ms" : "100ms",
           }}
         />
@@ -522,25 +528,28 @@ export default function AyatShowcase({
           onPlay={() => setSedangPutar(true)}
           onPause={() => setSedangPutar(false)}
           onEnded={() => {
-            // Mode surah: bila opsi lanjut aktif, minta surah berikutnya
-            // (induk mengganti surah → ayat dimulai dari awal lagi);
-            // bila tidak, mengulang surah yang sama dari ayat pertama.
-            if (surahAktif) {
-              if (lanjutKeSurahBerikut && onSurahBerikutnya) {
-                setSedangPutar(false);
-                onSurahBerikutnya();
-                return;
-              }
-              if (totalBagian > 0) setBagian(0);
-              return;
-            }
-            // Rentang multi-ayat: lanjut ke ayat berikutnya dalam kutipan
-            // yang sama; bila sudah ayat terakhir, jeda 1.5 detik lalu
-            // pindah ke kutipan berikutnya.
+            // Bila masih ada ayat berikutnya dalam surah atau rentang ayat ini:
+            // lanjutkan ke ayat berikutnya (ayat 1 -> 2 -> 3 -> dst.)
             if (bagian + 1 < totalBagian) {
               setBagian(bagian + 1);
               return;
             }
+
+            // Bila SELURUH ayat dalam surah ini sudah tuntas dibacakan:
+            if (surahAktif) {
+              setSedangPutar(false);
+              if (timerLanjut.current !== null) window.clearTimeout(timerLanjut.current);
+              timerLanjut.current = window.setTimeout(() => {
+                setBagian(0);
+                if (lanjutKeSurahBerikut && onSurahBerikutnya) {
+                  onSurahBerikutnya();
+                }
+              }, 1500);
+              return;
+            }
+
+            // Mode kurasi ayat pilihan: bila seluruh kutipan ayat tuntas,
+            // jeda 1.5 detik lalu pindah ke kutipan berikutnya.
             setSedangPutar(false);
             if (timerLanjut.current !== null) window.clearTimeout(timerLanjut.current);
             timerLanjut.current = window.setTimeout(() => {
@@ -548,10 +557,15 @@ export default function AyatShowcase({
             }, 1500);
           }}
           onError={() => {
-            // Satu berkas gagal (network/404): coba ayat berikutnya dalam
-            // rentang yang sama agar tidak macet di ayat pertama.
+            // Bila satu berkas audio ayat gagal dimuat, lanjutkan ke ayat berikutnya
+            // agar pemutaran surah tidak terhenti di tengah jalan.
             if (bagian + 1 < totalBagian) {
               setBagian(bagian + 1);
+              return;
+            }
+            if (surahAktif && lanjutKeSurahBerikut && onSurahBerikutnya) {
+              setBagian(0);
+              onSurahBerikutnya();
               return;
             }
             // Gagal muat berkas audio (network/CORS) — tandai sebagai tidak dapat diputar

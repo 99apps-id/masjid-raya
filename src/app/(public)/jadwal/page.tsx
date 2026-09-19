@@ -24,18 +24,22 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function JadwalPage() {
+export default async function JadwalPage(props: {
+  searchParams?: Promise<{ lokasi?: string }>;
+}) {
+  const sp = props.searchParams ? await props.searchParams : {};
   const [pengaturan, branding] = await Promise.all([
     getPetaPengaturan(),
     ambilProfil(),
   ]);
 
+  const lokasiDipilih = sp.lokasi || pengaturan.lokasi_default || "Jakarta";
   const ihtiyati = pengaturanAngka(pengaturan, "ihtiyati_menit", { min: 0, max: 5 });
   const hijriahOffsetHari = pengaturanAngka(pengaturan, "hijriah_offset_hari", {
     min: -2,
     max: 2,
   });
-  const jadwal = await getJadwalHarian(pengaturan.lokasi_default, kunciTanggal(), {
+  const jadwal = await getJadwalHarian(lokasiDipilih, kunciTanggal(), {
     sumber: pengaturan.sumber_jadwal === "aladhan" ? "aladhan" : "hisab",
     ihtiyatiMenit: ihtiyati,
     hijriahOffsetHari,

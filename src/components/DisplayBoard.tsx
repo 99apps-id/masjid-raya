@@ -206,12 +206,10 @@ export default function DisplayBoard({
 
   const segarkanJadwal = useCallback(async () => {
     try {
-      // Pertahankan lokasi yang sedang tampil; tanpa ?lokasi= refresh akan
-      // jatuh kembali ke lokasi default bila papan dibuka untuk kota lain.
-      const lokasi = jadwalAwal?.lokasi ?? jadwal?.lokasi;
-      const url = lokasi
-        ? `/api/jadwal?lokasi=${encodeURIComponent(lokasi)}`
-        : "/api/jadwal";
+      // Pertahankan lokasi yang sedang tampil; prioritaskan jadwal yang aktif
+      // (termasuk hasil deteksi GPS/jaringan), lalu jadwal awal, lalu Jakarta.
+      const lokasi = jadwal?.lokasi ?? jadwalAwal?.lokasi ?? "Jakarta";
+      const url = `/api/jadwal?lokasi=${encodeURIComponent(lokasi)}`;
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) return;
       const data = (await res.json()) as JadwalHarian;
@@ -219,6 +217,95 @@ export default function DisplayBoard({
     } catch {
       // Biarkan jadwal yang sedang tampil bila jaringan bermasalah.
     }
+  }, [jadwal?.lokasi, jadwalAwal?.lokasi]);
+
+  // Deteksi otomatis wilayah pengguna di Indonesia (GPS -> Jaringan IP -> Default Jakarta)
+  useEffect(() => {
+    let dibatalkan = false;
+
+    const muatJadwalUntukKota = async (namaKota: string) => {
+      try {
+        const res = await fetch(
+          `/api/jadwal?lokasi=${encodeURIComponent(namaKota)}`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as JadwalHarian;
+        if (!dibatalkan && data && data.lokasi) {
+          setJadwal(data);
+          try {
+            sessionStorage.setItem("masjid_lokasi_terdeteksi", data.lokasi);
+          } catch {}
+        }
+      } catch {}
+    };
+
+    const deteksiWilayah = async () => {
+      // Cek apakah lokasi sudah pernah terdeteksi pada sesi ini
+      try {
+        const tersimpan = sessionStorage.getItem("masjid_lokasi_terdeteksi");
+        if (tersimpan && tersimpan === jadwal?.lokasi) return;
+        if (tersimpan && tersimpan !== jadwal?.lokasi) {
+          await muatJadwalUntukKota(tersimpan);
+          return;
+        }
+      } catch {}
+
+      // 1. Coba deteksi via GPS browser bila didukung dan diizinkan pengguna
+      let koordinatGps: { lat: number; lon: number } | null = null;
+      if (typeof navigator !== "undefined" && "geolocation" in navigator) {
+        try {
+          const posisi = await new Promise<GeolocationPosition | null>((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => resolve(pos),
+              () => resolve(null),
+              { timeout: 3500, enableHighAccuracy: false, maximumAge: 300000 }
+            );
+          });
+          if (posisi && posisi.coords) {
+            koordinatGps = {
+              lat: posisi.coords.latitude,
+              lon: posisi.coords.longitude,
+            };
+          }
+        } catch {}
+      }
+
+      if (dibatalkan) return;
+
+      // 2. Minta API /api/lokasi (menggunakan GPS bila ada, atau IP / Jaringan)
+      try {
+        const urlLokasi = koordinatGps
+          ? `/api/lokasi?lat=${koordinatGps.lat}&lon=${koordinatGps.lon}`
+          : "/api/lokasi";
+        const resLokasi = await fetch(urlLokasi, { cache: "no-store" });
+        if (resLokasi.ok) {
+          const infoLokasi = (await resLokasi.json()) as {
+            kota?: string;
+            sumber?: string;
+          };
+          if (infoLokasi && infoLokasi.kota) {
+            const kotaBaru = infoLokasi.kota;
+            if (kotaBaru !== (jadwal?.lokasi ?? jadwalAwal?.lokasi)) {
+              await muatJadwalUntukKota(kotaBaru);
+            }
+            return;
+          }
+        }
+      } catch {}
+
+      // 3. Fallback default jika wilayah tidak terdeteksi: Jakarta
+      const lokasiSekarang = jadwal?.lokasi ?? jadwalAwal?.lokasi;
+      if (!lokasiSekarang || lokasiSekarang.toLowerCase() !== "jakarta") {
+        await muatJadwalUntukKota("Jakarta");
+      }
+    };
+
+    void deteksiWilayah();
+
+    return () => {
+      dibatalkan = true;
+    };
   }, [jadwal?.lokasi, jadwalAwal?.lokasi]);
 
   useEffect(() => {
@@ -787,9 +874,24 @@ export default function DisplayBoard({
         </div>
 
         <div className="flex items-center gap-4 text-xs font-semibold text-ink-400">
-          <span>
-            Jadwal {jadwal?.lokasi ?? "-"}
-            {jadwal?.provinsi ? `, ${jadwal.provinsi}` : ""} · {LABEL_ZONA[zona]}
+          <span className="inline-flex items-center gap-1.5 text-forest-800" title={`Wilayah jadwal shalat: ${jadwal?.lokasi ?? "Jakarta"}`}>
+            <svg
+              className="h-3.5 w-3.5 text-forest-700 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span>
+              Jadwal {jadwal?.lokasi ?? "Jakarta"}
+              {jadwal?.provinsi ? `, ${jadwal.provinsi}` : ""} · {LABEL_ZONA[zona]}
+            </span>
           </span>
           {!isFullscreen && <KreditAplikasi className="hidden sm:inline" />}
         </div>

@@ -171,6 +171,14 @@ export const KOTA_INDONESIA: Kota[] = [
   { nama: "Wamena", provinsi: "Papua Pegunungan", zona: "Asia/Jayapura", lat: -4.0996, lon: 138.945 },
 ];
 
+export const KOTA_DEFAULT: Kota = {
+  nama: "Jakarta",
+  provinsi: "DKI Jakarta",
+  zona: "Asia/Jakarta",
+  lat: -6.2088,
+  lon: 106.8456,
+};
+
 export function cariKota(nama?: string | null): Kota | null {
   const bersih = (nama ?? "").trim().toLowerCase();
   if (!bersih) return null;
@@ -180,9 +188,62 @@ export function cariKota(nama?: string | null): Kota | null {
 }
 
 /**
+ * Hitung jarak lingkaran besar (Haversine) antara dua titik koordinat dalam kilometer.
+ */
+export function hitungJarakKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371; // Radius bumi dalam km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Cari kota Indonesia terdekat berdasarkan koordinat lintang/bujur (GPS atau Jaringan).
+ * Jika koordinat berada di luar wilayah Indonesia (jarak > 1000 km) atau tidak valid,
+ * secara otomatis jatuh kembali ke default Jakarta.
+ */
+export function cariKotaTerdekat(lat: number, lon: number): Kota {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return KOTA_DEFAULT;
+  }
+
+  let terdekat: Kota = KOTA_DEFAULT;
+  let jarakMinimal = Infinity;
+
+  for (const k of KOTA_INDONESIA) {
+    const jarak = hitungJarakKm(lat, lon, k.lat, k.lon);
+    if (jarak < jarakMinimal) {
+      jarakMinimal = jarak;
+      terdekat = k;
+    }
+  }
+
+  // Jika jarak ke kota Indonesia terdekat > 1000 km (di luar Indonesia),
+  // default kembali ke Jakarta.
+  if (jarakMinimal > 1000) {
+    return KOTA_DEFAULT;
+  }
+
+  return terdekat;
+}
+
+/**
  * Ubah masukan bebas menjadi kota kanonik. Nama yang tidak dikenal tetap
  * diteruskan (agar admin bebas memakai kota di luar daftar) namun dipinjamkan
  * zonanya dari provinsi terdekat bila ada kecocokan sebagian.
+ * Jika tidak terisi/kosong, default adalah Jakarta.
  */
 export function normalisasiLokasi(input?: string | null): {
   kota: string;
@@ -192,7 +253,7 @@ export function normalisasiLokasi(input?: string | null): {
 } {
   const bersih = (input ?? "").trim();
   if (!bersih) {
-    const bawaan = KOTA_INDONESIA[0];
+    const bawaan = cariKota("Jakarta") ?? KOTA_DEFAULT;
     return {
       kota: bawaan.nama,
       provinsi: bawaan.provinsi,
