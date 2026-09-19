@@ -5,7 +5,7 @@ Semua perubahan penting pada proyek ini didokumentasikan di berkas ini.
 Format ini mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 
-## [Belum Dirilis]
+## [0.1.0] - 2026-09-19
 
 ### Ditambahkan
 - Dokumentasi awal (README.md) lengkap dengan panduan instalasi, mode TV layar penuh, struktur proyek, dan panduan penggunaan.
