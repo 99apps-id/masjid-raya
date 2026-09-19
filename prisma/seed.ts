@@ -280,6 +280,10 @@ async function main() {
     { key: "adzan_enabled", value: "true" },
     { key: "adzan_audio_url", value: "" },
     { key: "murottal_reciter", value: "alafasy" },
+    { key: "murottal_jeda_menit", value: "30" },
+    { key: "mode_ayat", value: "pilihan" },
+    { key: "surah_nomor", value: "112" },
+    { key: "surah_lanjut", value: "ulang" },
     {
       key: "running_text",
       value:

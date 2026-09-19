@@ -8,6 +8,7 @@ import AyatShowcase from "@/components/AyatShowcase";
 import KreditAplikasi from "@/components/KreditAplikasi";
 import { IkonLayarPenuh, IkonKeluarLayarPenuh } from "@/components/Ikon";
 import type { Ayat } from "@/lib/ayat";
+import { cariSurah, type InfoSurah } from "@/lib/surah";
 import { LABEL_ZONA, ZONA_DEFAULT, type Zona } from "@/lib/kota";
 import {
   detikHari,
@@ -50,6 +51,15 @@ interface DisplayBoardProps {
   tampilkanMurottal: boolean;
   /** Subdirektori EveryAyah reciter murottal pilihan admin (lihat lib/murottal.ts). */
   murottalReciter: string;
+  /** Surah penuh untuk mode surah; null berarti mode ayat pilihan. */
+  surah: InfoSurah | null;
+  /** Surah otomatis maju ke berikutnya setelah tuntas (hingga khatam). */
+  surahLanjutOtomatis: boolean;
+  /** Jeda murottal setelah adzan selesai (menit); 0 = lanjut segera. */
+  murottalJedaMenit: number;
+  /** Jendela jam tayang harian HH:MM; "" = tanpa batas. */
+  murottalMulai: string;
+  murottalSelesai: string;
   /** Penyesuaian tanggal Hijriah (hari) dari pengaturan masjid. */
   hijriahOffsetHari: number;
 }
@@ -100,6 +110,11 @@ export default function DisplayBoard({
   reminderSuara,
   tampilkanMurottal,
   murottalReciter,
+  surah,
+  surahLanjutOtomatis,
+  murottalJedaMenit,
+  murottalMulai,
+  murottalSelesai,
   hijriahOffsetHari,
 }: DisplayBoardProps) {
   const { data: session } = useSession();
@@ -111,10 +126,51 @@ export default function DisplayBoard({
   const [suaraSiap, setSuaraSiap] = useState(false);
   const [menuTerbuka, setMenuTerbuka] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // true selama audio adzan benar-benar berbunyi — murottal ditahan
+  // (dijeda) selama itu sebagai adab mendengarkan adzan.
+  const [adzanBerbunyi, setAdzanBerbunyi] = useState(false);
+  // Tahan lanjutan setelah adzan selesai, selama jeda yang diatur admin.
+  const [jedaLepasAdzan, setJedaLepasAdzan] = useState(false);
+  const timerJedaAdzan = useRef<number | null>(null);
+
+  // Adzan selesai → tahan murottal selama `murottalJedaMenit`, lalu lepas
+  // agar lanjut otomatis. Adzan mulai lagi → batalkan sisa jeda.
+  useEffect(() => {
+    if (adzanBerbunyi) {
+      if (timerJedaAdzan.current !== null) window.clearTimeout(timerJedaAdzan.current);
+      setJedaLepasAdzan(false);
+      return;
+    }
+    if (murottalJedaMenit > 0 && adzanTerakhir.current) {
+      setJedaLepasAdzan(true);
+      if (timerJedaAdzan.current !== null) window.clearTimeout(timerJedaAdzan.current);
+      timerJedaAdzan.current = window.setTimeout(
+        () => setJedaLepasAdzan(false),
+        murottalJedaMenit * 60 * 1000
+      );
+    }
+    return () => {
+      if (timerJedaAdzan.current !== null) window.clearTimeout(timerJedaAdzan.current);
+    };
+  }, [adzanBerbunyi, murottalJedaMenit]);
 
   const nadaTerakhir = useRef<string | null>(null);
   const adzanTerakhir = useRef<string | null>(null);
   const audioAdzan = useRef<HTMLAudioElement | null>(null);
+
+  // Surah yang sedang diputar di mode surah. Maju otomatis 1→114→1 bila
+  // opsi lanjut aktif; diselaraskan ulang bila pengaturan admin berubah.
+  const [nomorSurahAktif, setNomorSurahAktif] = useState<number | null>(
+    surah?.nomor ?? null
+  );
+  useEffect(() => {
+    setNomorSurahAktif(surah?.nomor ?? null);
+  }, [surah?.nomor]);
+  const surahAktif =
+    (nomorSurahAktif ? cariSurah(nomorSurahAktif) : null) ?? surah;
+  const majuSurahBerikutnya = useCallback(() => {
+    setNomorSurahAktif((nomor) => (nomor ? (nomor % 114) + 1 : nomor));
+  }, []);
 
   // Deteksi event perubahan fullscreen dari browser
   useEffect(() => {
@@ -190,6 +246,20 @@ export default function DisplayBoard({
 
   const detikSekarang = waktu ? detikHari(waktu, zona) : null;
   const menitSekarang = detikSekarang == null ? null : Math.floor(detikSekarang / 60);
+
+  /** Jendela jam tayang murottal; kosong = seharian, mendukung lewat tengah malam. */
+  const murottalDalamJendela = useMemo(() => {
+    const keMenit = (s: string): number | null => {
+      const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(s.trim());
+      return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+    };
+    const mulai = keMenit(murottalMulai);
+    const selesai = keMenit(murottalSelesai);
+    if (mulai === null || selesai === null || menitSekarang === null) return true;
+    const sekarang = ((menitSekarang % 1440) + 1440) % 1440;
+    if (mulai <= selesai) return sekarang >= mulai && sekarang < selesai;
+    return sekarang >= mulai || sekarang < selesai;
+  }, [murottalMulai, murottalSelesai, menitSekarang]);
   const shalatSebelumnya =
     menitSekarang == null
       ? null
@@ -491,8 +561,12 @@ export default function DisplayBoard({
           <AyatShowcase
             ayat={ayat}
             jedaMs={14000}
-            tampilkanMurottal={tampilkanMurottal}
+            tampilkanMurottal={tampilkanMurottal && murottalDalamJendela}
             reciter={murottalReciter}
+            surah={surahAktif}
+            lanjutKeSurahBerikut={surahLanjutOtomatis}
+            onSurahBerikutnya={majuSurahBerikutnya}
+            tahanMurottal={adzanBerbunyi || jedaLepasAdzan}
             ringkas={isFullscreen}
           />
         </section>
@@ -616,7 +690,17 @@ export default function DisplayBoard({
                 )}
                 {adzanAktif && adzanAudioUrl && (
                   <div className="flex items-center gap-2">
-                    <audio ref={audioAdzan} src={adzanAudioUrl} preload="none" onError={() => undefined} />
+                    <audio
+                      ref={audioAdzan}
+                      src={adzanAudioUrl}
+                      preload="none"
+                      onPlay={() => setAdzanBerbunyi(true)}
+                      onEnded={() => setAdzanBerbunyi(false)}
+                      onPause={() => setAdzanBerbunyi(false)}
+                      onError={() => {
+                        setAdzanBerbunyi(false);
+                      }}
+                    />
                     <button
                       type="button"
                       onClick={() => {

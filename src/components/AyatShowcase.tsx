@@ -1,8 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { rujukanAyat, daftarUrlAudioAyat, type Ayat } from "@/lib/ayat";
+import {
+  rujukanAyat,
+  daftarUrlAudioAyat,
+  daftarUrlAudioSurah,
+  type Ayat,
+} from "@/lib/ayat";
 import { SUBDIR_MUROTTAL_BAWAAN } from "@/lib/murottal";
+import type { InfoSurah } from "@/lib/surah";
 import {
   IkonSuara,
   IkonPutar,
@@ -10,6 +16,15 @@ import {
   IkonPanahKiri,
   IkonPanahKanan,
 } from "@/components/Ikon";
+
+interface AyatSurahTampil {
+  nomor: number;
+  ar: string;
+  idn: string;
+}
+
+/** Cache teks surah per sesi agar pindah/maju surah tidak memuat ulang. */
+const cacheTeksSurah = new Map<number, AyatSurahTampil[]>();
 
 interface AyatShowcaseProps {
   ayat: Ayat[];
@@ -23,6 +38,22 @@ interface AyatShowcaseProps {
    */
   reciter?: string;
   /**
+   * Surah penuh yang ditampilkan (mode surah). Bila null, dipakai mode
+   * kurasi ayat pilihan seperti sebelumnya.
+   */
+  surah?: InfoSurah | null;
+  /**
+   * Tahan murottal dari luar (mis. saat adzan berkumandang): audio dijeda
+   * dan dilanjutkan otomatis dari posisi yang sama begitu tahan dibuka.
+   */
+  tahanMurottal?: boolean;
+  /**
+   * Mode surah: maju otomatis ke surah berikutnya setelah satu surah tuntas
+   * (melalui `onSurahBerikutnya`). Bila false, surah yang sama diulang.
+   */
+  lanjutKeSurahBerikut?: boolean;
+  onSurahBerikutnya?: () => void;
+  /**
    * Mode ringkas untuk layar penuh TV: badge status, tombol kontrol, dan
    * navigasi disembunyikan, serta ukuran teks dikecilkan agar nama surah
    * dan terjemahan tidak meluber tertutup kartu jadwal di bawahnya.
@@ -35,6 +66,10 @@ export default function AyatShowcase({
   jedaMs = 14000,
   tampilkanMurottal = true,
   reciter = SUBDIR_MUROTTAL_BAWAAN,
+  surah = null,
+  tahanMurottal = false,
+  lanjutKeSurahBerikut = false,
+  onSurahBerikutnya,
   ringkas = false,
 }: AyatShowcaseProps) {
   const [indeks, setIndeks] = useState(0);
@@ -54,24 +89,98 @@ export default function AyatShowcase({
   const totalAyat = ayat.length;
   const aman = totalAyat === 0 ? 0 : Math.min(indeks, totalAyat - 1);
   const ayatAktif = ayat[aman];
-  // Daftar putar: kutipan rentang (mis. 5–6) diputar per ayat berurutan,
-  // bukan hanya ayat pertamanya — semuanya dengan suara reciter pilihan.
-  const daftarAudio = useMemo(
-    () => (ayatAktif ? daftarUrlAudioAyat(ayatAktif, reciter) : []),
-    [ayatAktif, reciter]
-  );
+
+  // --- Mode surah penuh: teks Arab + terjemah dimuat dari /api/surah ---
+  const [teksSurah, setTeksSurah] = useState<AyatSurahTampil[] | null>(null);
+  const [memuatSurah, setMemuatSurah] = useState(false);
+  const [galatSurah, setGalatSurah] = useState(false);
+  const nomorSurah = surah?.nomor ?? null;
+
+  useEffect(() => {
+    if (!nomorSurah) {
+      setTeksSurah(null);
+      setMemuatSurah(false);
+      setGalatSurah(false);
+      return;
+    }
+    const tersimpan = cacheTeksSurah.get(nomorSurah);
+    if (tersimpan) {
+      setTeksSurah(tersimpan);
+      setMemuatSurah(false);
+      setGalatSurah(false);
+      return;
+    }
+    let batal = false;
+    setTeksSurah(null);
+    setMemuatSurah(true);
+    setGalatSurah(false);
+    fetch(`/api/surah/${nomorSurah}`, { cache: "force-cache" })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json() as Promise<{ ayat: AyatSurahTampil[] }>;
+      })
+      .then((data) => {
+        if (batal) return;
+        if (Array.isArray(data.ayat) && data.ayat.length > 0) {
+          cacheTeksSurah.set(nomorSurah, data.ayat);
+          setTeksSurah(data.ayat);
+          setMemuatSurah(false);
+        } else {
+          setGalatSurah(true);
+          setMemuatSurah(false);
+        }
+      })
+      .catch(() => {
+        if (batal) return;
+        setGalatSurah(true);
+        setMemuatSurah(false);
+      });
+    return () => {
+      batal = true;
+    };
+  }, [nomorSurah]);
+
+  // Surah aktif hanya bila teksnya benar-benar termuat; bila gagal,
+  // tampilan jatuh kembali ke mode ayat pilihan.
+  const surahAktif = surah && teksSurah && teksSurah.length > 0 ? surah : null;
+  // Sedang memuat teks (bukan gagal): tampilkan status, bukan kurasi.
+  const memuatTeks = !!surah && memuatSurah && !surahAktif;
+
+  // --- Daftar putar ---
+  // Mode surah: seluruh ayat surah berurutan dengan suara reciter pilihan.
+  // Mode kurasi: kutipan rentang (mis. 5–6) diputar per ayat berurutan.
+  const daftarAudio = useMemo(() => {
+    if (surahAktif && teksSurah) {
+      return daftarUrlAudioSurah(surahAktif.nomor, teksSurah.length, reciter);
+    }
+    return ayatAktif ? daftarUrlAudioAyat(ayatAktif, reciter) : [];
+  }, [surahAktif, teksSurah, ayatAktif, reciter]);
   // Posisi ayat di dalam rentang yang sedang dilantunkan (0-based).
   const [bagian, setBagian] = useState(0);
-  // Ganti reciter di tengah rentang: ulangi dari ayat pertama kutipan ini.
-  const reciterSebelumnya = useRef(reciter);
+  // Ganti reciter/surah di tengah jalan: ulangi dari awal kutipan ini.
   useEffect(() => {
-    if (reciterSebelumnya.current !== reciter) {
-      reciterSebelumnya.current = reciter;
-      setBagian(0);
-    }
-  }, [reciter]);
+    setBagian(0);
+    setKemajuan(0);
+  }, [reciter, nomorSurah]);
   const urlAudio = daftarAudio[bagian] ?? null;
   const totalBagian = daftarAudio.length;
+
+  // Pra-muat teks surah berikutnya menjelang akhir surah agar pindah
+  // surah tidak menampilkan status muat (terutama surah panjang).
+  useEffect(() => {
+    if (!surahAktif || !lanjutKeSurahBerikut || !teksSurah) return;
+    if (bagian < teksSurah.length - 3) return;
+    const berikut = (surahAktif.nomor % 114) + 1;
+    if (cacheTeksSurah.has(berikut)) return;
+    fetch(`/api/surah/${berikut}`, { cache: "force-cache" })
+      .then((res) => (res.ok ? (res.json() as Promise<{ ayat: AyatSurahTampil[] }>) : null))
+      .then((data) => {
+        if (data && Array.isArray(data.ayat) && data.ayat.length > 0) {
+          cacheTeksSurah.set(berikut, data.ayat);
+        }
+      })
+      .catch(() => undefined);
+  }, [surahAktif, lanjutKeSurahBerikut, teksSurah, bagian]);
 
   // Pergantian ayat dengan transisi cross-fade lembut
   const gantiKe = useCallback(
@@ -107,9 +216,10 @@ export default function AyatShowcase({
     gantiKe((aman - 1 + totalAyat) % totalAyat);
   }, [aman, totalAyat, gantiKe]);
 
-  // Autoplay Murottal setiap kali ayat aktif / bagian rentang berganti
+  // Autoplay Murottal setiap kali ayat aktif / bagian rentang berganti.
+  // Ditahan (tidak berbunyi) selama tahanMurottal, mis. saat adzan.
   useEffect(() => {
-    if (!tampilkanMurottal || !autoplayMurottal || !urlAudio) return;
+    if (!tampilkanMurottal || !autoplayMurottal || !urlAudio || tahanMurottal) return;
 
     const audio = audioRef.current;
     if (!audio) return;
@@ -145,7 +255,26 @@ export default function AyatShowcase({
       isMounted = false;
       clearTimeout(jedaMulai);
     };
-  }, [aman, bagian, autoplayMurottal, tampilkanMurottal, urlAudio]);
+  }, [aman, bagian, autoplayMurottal, tampilkanMurottal, tahanMurottal, urlAudio]);
+
+  // Tahan-lepas eksternal (adzan): jeda audio dan lanjutkan otomatis dari
+  // posisi yang sama begitu tahan dibuka. Adab: diam mendengarkan adzan.
+  const lanjutSetelahTahan = useRef(false);
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (tahanMurottal) {
+      if (!audio.paused) {
+        audio.pause();
+        lanjutSetelahTahan.current = true;
+      }
+    } else if (lanjutSetelahTahan.current) {
+      lanjutSetelahTahan.current = false;
+      if (autoplayMurottal && urlAudio) {
+        void audio.play().then(() => setSedangPutar(true)).catch(() => undefined);
+      }
+    }
+  }, [tahanMurottal, autoplayMurottal, urlAudio]);
 
   // Buka blokir autoplay begitu ada sentuhan atau klik sembarang di layar
   useEffect(() => {
@@ -165,11 +294,12 @@ export default function AyatShowcase({
     };
   }, [autoplayMurottal]);
 
-  // Siklus hitung maju / progress bar (hanya berjalan saat murottal tidak sedang melantun)
-  const dijeda = dijedaUser || isHovered || sedangPutar;
+  // Siklus hitung maju / progress bar (hanya berjalan saat murottal tidak
+  // sedang melantun, bukan mode surah, dan tidak ditahan adzan)
+  const dijeda = dijedaUser || isHovered || sedangPutar || tahanMurottal;
 
   useEffect(() => {
-    if (totalAyat <= 1 || dijeda) return;
+    if (totalAyat <= 1 || dijeda || surahAktif) return;
 
     const intervalStep = 100;
     const pertambahan = (intervalStep / jedaMs) * 100;
@@ -187,12 +317,22 @@ export default function AyatShowcase({
     return () => {
       if (timerMaju.current) clearInterval(timerMaju.current);
     };
-  }, [totalAyat, jedaMs, dijeda, ayatBerikutnya]);
+  }, [totalAyat, jedaMs, dijeda, surahAktif, ayatBerikutnya]);
 
   if (totalAyat === 0 || !ayatAktif) return null;
 
+  // Teks yang tampil: mode surah memakai ayat ke-`bagian` dari surah penuh,
+  // mode kurasi memakai kutipan aktif. Gagal muat surah → jatuh ke kurasi.
+  const ayatSurahAktif = surahAktif && teksSurah ? teksSurah[Math.min(bagian, teksSurah.length - 1)] : undefined;
+  const tampilAr = ayatSurahAktif?.ar ?? ayatAktif.ar;
+  const tampilIdn = ayatSurahAktif?.idn || ayatAktif.idn;
+  const tampilSurahArab = surahAktif?.arab ?? ayatAktif.surahArab;
+  const tampilRujukan = surahAktif
+    ? `${surahAktif.nama} : ${bagian + 1}`
+    : rujukanAyat(ayatAktif);
+
   // Deteksi ayat yang relatif panjang untuk kalibrasi clamp yang seimbang
-  const ayatPanjang = ayatAktif.ar.length > 130;
+  const ayatPanjang = tampilAr.length > 130;
 
   return (
     <div
@@ -218,8 +358,13 @@ export default function AyatShowcase({
         <div className="flex items-center gap-2.5">
           <span className="flex h-2.5 w-2.5 rounded-full bg-brass shadow-sm" />
           <span className="label-kecil font-bold tracking-wider text-forest-900">
-            Ayat Pilihan
+            {surahAktif ? `Surah ${surahAktif.nama}` : "Ayat Pilihan"}
           </span>
+          {surah && !surahAktif && galatSurah && (
+            <span className="rounded-full border border-red-300/60 bg-red-50 px-2.5 py-0.5 text-[10px] font-semibold text-red-700">
+              Teks surah gagal dimuat — menampilkan ayat pilihan
+            </span>
+          )}
           {/* Mode ringkas (fullscreen TV): badge status disembunyikan. */}
           {!ringkas && sedangPutar && (
             <span className="flex items-center gap-1.5 rounded-full border border-forest-600/30 bg-forest-100/90 px-2.5 py-0.5 text-[11px] font-semibold text-forest-800 backdrop-blur-sm">
@@ -304,6 +449,17 @@ export default function AyatShowcase({
         >
           {/* Teks Arab Kaligrafi Utsmani — Amiri Quran hanya 400, jadi jangan
               faux-bold agar goresan kaligrafi tetap ramping autentik. */}
+          {memuatTeks ? (
+            <div className="animate-pulse py-8" aria-live="polite">
+              <p dir="rtl" lang="ar" className="font-uthmani text-right text-[clamp(1.5rem,3vw,2.5rem)] text-forest-900/60">
+                {surah?.arab}
+              </p>
+              <p className="mt-4 text-sm font-semibold text-forest-700">
+                Memuat Surah {surah?.nama} ({surah?.ayat} ayat)…
+              </p>
+            </div>
+          ) : (
+          <>
           <p
             dir="rtl"
             lang="ar"
@@ -321,7 +477,7 @@ export default function AyatShowcase({
               filter: "drop-shadow(0 1px 3px rgba(10,103,66,0.10))",
             }}
           >
-            {ayatAktif.ar}
+            {tampilAr}
           </p>
 
           {/* Rujukan Surah dan Ayat */}
@@ -329,12 +485,17 @@ export default function AyatShowcase({
             <span className="h-px w-8 shrink-0 rounded-full bg-gradient-to-r from-brass/80 to-brass/20" />
             <span className="flex items-center gap-1.5">
               <span className="font-arabic text-base font-bold text-brass-600">
-                {ayatAktif.surahArab}
+                {tampilSurahArab}
               </span>
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-ink-400">·</span>
               <span className="text-xs font-bold uppercase tracking-wider text-forest-700 sm:text-sm">
-                QS. {rujukanAyat(ayatAktif)}
+                QS. {tampilRujukan}
               </span>
+              {surahAktif && (
+                <span className="rounded-full border border-forest-600/30 bg-forest-100/90 px-2 py-0.5 text-[10px] font-bold tabular-nums text-forest-800">
+                  Ayat {bagian + 1}/{totalBagian}
+                </span>
+              )}
             </span>
             <span className="h-px flex-1 rounded-full bg-gradient-to-r from-forest-900/15 to-transparent" />
           </div>
@@ -345,8 +506,10 @@ export default function AyatShowcase({
           <p className={`font-inter font-normal leading-relaxed text-ink-500 lg:max-w-[65ch] ${
             ringkas ? "text-xs sm:text-sm line-clamp-3" : "text-sm sm:text-base"
           }`}>
-            &ldquo;{ayatAktif.idn}&rdquo;
+            &ldquo;{tampilIdn}&rdquo;
           </p>
+          </>
+          )}
         </div>
       </div>
 
@@ -359,6 +522,18 @@ export default function AyatShowcase({
           onPlay={() => setSedangPutar(true)}
           onPause={() => setSedangPutar(false)}
           onEnded={() => {
+            // Mode surah: bila opsi lanjut aktif, minta surah berikutnya
+            // (induk mengganti surah → ayat dimulai dari awal lagi);
+            // bila tidak, mengulang surah yang sama dari ayat pertama.
+            if (surahAktif) {
+              if (lanjutKeSurahBerikut && onSurahBerikutnya) {
+                setSedangPutar(false);
+                onSurahBerikutnya();
+                return;
+              }
+              if (totalBagian > 0) setBagian(0);
+              return;
+            }
             // Rentang multi-ayat: lanjut ke ayat berikutnya dalam kutipan
             // yang sama; bila sudah ayat terakhir, jeda 1.5 detik lalu
             // pindah ke kutipan berikutnya.
@@ -386,8 +561,9 @@ export default function AyatShowcase({
         />
       )}
 
-      {/* Footer Navigasi Ayat — disembunyikan di mode ringkas (fullscreen TV). */}
-      {!ringkas && totalAyat > 1 && (
+      {/* Footer Navigasi Ayat — disembunyikan di mode ringkas (fullscreen
+          TV) dan mode surah (navigasi otomatis ayat per ayat). */}
+      {!ringkas && !surahAktif && totalAyat > 1 && (
         <div className="flex items-center justify-between border-t border-forest-900/10 pt-3.5">
           {/* Titik Indikator / Paginasi */}
           <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-[220px] sm:max-w-none">

@@ -37,6 +37,30 @@ export const PENGATURAN_BAWAAN = {
   tampilkan_murottal: "true",
   /** Id reciter murottal dari lib/murottal.ts (suara pengisi bacaan ayat). */
   murottal_reciter: "alafasy",
+  /**
+   * Jeda murottal setelah adzan selesai, dalam menit (0–120). Selama jeda,
+   * murottal ditahan lalu lanjut otomatis. 0 = lanjut segera setelah adzan.
+   */
+  murottal_jeda_menit: "30",
+  /**
+   * Jendela jam tayang murottal harian (HH:MM). Keduanya kosong = tayang
+   * seharian; mendukung rentang lewat tengah malam (mis. 20:00–04:00).
+   */
+  murottal_mulai: "",
+  murottal_selesai: "",
+  /**
+   * Mode tampilan panel ayat: "pilihan" (kurasi ayat pendek) atau
+   * "surah" (satu surah penuh per `surah_nomor`). Pilihan admin di UI
+   * menyusul; kunci ini disiapkan agar API dan papan sudah mendukung.
+   */
+  mode_ayat: "pilihan",
+  /** Nomor surah 1–114 yang ditampilkan bila `mode_ayat` = "surah". */
+  surah_nomor: "112",
+  /**
+   * Perilaku setelah satu surah tuntas: "ulang" (mengulang surah yang sama)
+   * atau "lanjut" (maju ke surah berikutnya, 114 → 1, hingga khatam).
+   */
+  surah_lanjut: "ulang",
 
   running_text:
     "Selamat datang di masjid kami. Mari jaga kebersihan dan ketertiban bersama.",

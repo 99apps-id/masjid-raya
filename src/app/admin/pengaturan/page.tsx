@@ -23,6 +23,7 @@ import {
   namaPilihanMurottal,
   PILIHAN_MUROTTAL,
 } from "@/lib/murottal";
+import { cariSurah, DAFTAR_SURAH } from "@/lib/surah";
 import type { PrayerTimes } from "@/lib/waktu";
 
 interface BarisPengaturan {
@@ -223,6 +224,10 @@ export default function AdminPengaturanPage() {
   const murottalTerpilih =
     cariPilihanMurottal(nilai.murottal_reciter) ?? PILIHAN_MUROTTAL[0]!;
   const urlContohMurottal = `https://everyayah.com/data/${murottalTerpilih.subdir}/001001.mp3`;
+
+  const modeAyat = nilai.mode_ayat === "surah" ? "surah" : "pilihan";
+  const surahTerpilih =
+    cariSurah(Number(nilai.surah_nomor)) ?? DAFTAR_SURAH[111]!;
 
   if (memuat) {
     return <p className="text-sm text-ink-400">Memuat pengaturan...</p>;
@@ -535,6 +540,187 @@ export default function AdminPengaturanPage() {
                   sebelum disimpan.
                 </p>
               </div>
+            </div>
+          </KartuAdmin>
+
+          {/* Mode tampilan ayat */}
+          <KartuAdmin className="p-6 lg:p-8">
+            <div className="flex items-center gap-3">
+              <IkonJam className="h-5 w-5 text-forest-600" />
+              <h2 className="section-title">Mode tampilan ayat</h2>
+            </div>
+            <div className="rule mt-4" />
+
+            <div className="mt-6 space-y-6">
+              <div>
+                <span className="field-label">Sumber bacaan di beranda</span>
+                <div className="mt-1.5 grid gap-3 sm:grid-cols-2">
+                  {[
+                    {
+                      id: "pilihan",
+                      judul: "Ayat pilihan",
+                      ket: "Kurasi ayat pendek bermakna kuat, berganti otomatis",
+                    },
+                    {
+                      id: "surah",
+                      judul: "Surah penuh",
+                      ket: "Satu surah dibaca ayat per ayat sampai tuntas, lalu mengulang",
+                    },
+                  ].map((pilihan) => {
+                    const aktif = modeAyat === pilihan.id;
+                    return (
+                      <button
+                        key={pilihan.id}
+                        type="button"
+                        onClick={() => ubah("mode_ayat", pilihan.id)}
+                        aria-pressed={aktif}
+                        className={`rounded-xl border px-4 py-3 text-left transition ${
+                          aktif
+                            ? "border-forest-600/50 bg-forest-50"
+                            : "border-forest-900/12 hover:border-forest-700/30"
+                        }`}
+                      >
+                        <span className="block text-sm font-medium text-forest-900">
+                          {pilihan.judul}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-ink-400">{pilihan.ket}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {modeAyat === "surah" && (
+                <div>
+                  <label htmlFor="surah-nomor" className="field-label">
+                    Surah yang ditampilkan
+                  </label>
+                  <select
+                    id="surah-nomor"
+                    className="field"
+                    value={String(surahTerpilih.nomor)}
+                    onChange={(e) => ubah("surah_nomor", e.target.value)}
+                  >
+                    {DAFTAR_SURAH.map((surah) => (
+                      <option key={surah.nomor} value={surah.nomor}>
+                        {surah.nomor}. {surah.nama} ({surah.ayat} ayat)
+                      </option>
+                    ))}
+                  </select>
+                  <p className="meta mt-2">
+                    Aktif:{" "}
+                    <strong className="font-medium">
+                      QS. {surahTerpilih.nama} ({surahTerpilih.arab}) —{" "}
+                      {surahTerpilih.arti}, {surahTerpilih.ayat} ayat,{" "}
+                      {surahTerpilih.tempat}
+                    </strong>
+                    . Berlaku di papan informasi beranda setelah disimpan.
+                  </p>
+                </div>
+              )}
+
+              {modeAyat === "surah" && (
+                <div>
+                  <span className="field-label">Setelah satu surah tuntas</span>
+                  <div className="mt-1.5 grid gap-3 sm:grid-cols-2">
+                    {[
+                      {
+                        id: "ulang",
+                        judul: "Ulangi surah ini",
+                        ket: "Dibaca berulang dari ayat pertama",
+                      },
+                      {
+                        id: "lanjut",
+                        judul: "Lanjut surah berikutnya",
+                        ket: "Maju berurutan 1→114→1 hingga khatam",
+                      },
+                    ].map((pilihan) => {
+                      const aktif = (nilai.surah_lanjut ?? "ulang") === pilihan.id;
+                      return (
+                        <button
+                          key={pilihan.id}
+                          type="button"
+                          onClick={() => ubah("surah_lanjut", pilihan.id)}
+                          aria-pressed={aktif}
+                          className={`rounded-xl border px-4 py-3 text-left transition ${
+                            aktif
+                              ? "border-forest-600/50 bg-forest-50"
+                              : "border-forest-900/12 hover:border-forest-700/30"
+                          }`}
+                        >
+                          <span className="block text-sm font-medium text-forest-900">
+                            {pilihan.judul}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-ink-400">{pilihan.ket}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </KartuAdmin>
+
+          {/* Jadwal murottal */}
+          <KartuAdmin className="p-6 lg:p-8">
+            <div className="flex items-center gap-3">
+              <IkonJam className="h-5 w-5 text-forest-600" />
+              <h2 className="section-title">Jadwal murottal</h2>
+            </div>
+            <div className="rule mt-4" />
+
+            <div className="mt-6 space-y-6">
+              <div className="max-w-xs">
+                <label htmlFor="murottal-jeda" className="field-label">
+                  Jeda setelah adzan (menit)
+                </label>
+                <input
+                  id="murottal-jeda"
+                  type="number"
+                  min={0}
+                  max={120}
+                  className="field"
+                  value={nilai.murottal_jeda_menit ?? "30"}
+                  onChange={(e) => ubah("murottal_jeda_menit", e.target.value)}
+                />
+                <p className="meta mt-2">
+                  Murottal berhenti saat adzan lalu lanjut otomatis setelah
+                  jeda ini. Isi 0 untuk lanjut segera setelah adzan selesai.
+                </p>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="murottal-mulai" className="field-label">
+                    Tayang mulai pukul
+                  </label>
+                  <input
+                    id="murottal-mulai"
+                    type="time"
+                    className="field"
+                    value={nilai.murottal_mulai ?? ""}
+                    onChange={(e) => ubah("murottal_mulai", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="murottal-selesai" className="field-label">
+                    Tayang sampai pukul
+                  </label>
+                  <input
+                    id="murottal-selesai"
+                    type="time"
+                    className="field"
+                    value={nilai.murottal_selesai ?? ""}
+                    onChange={(e) => ubah("murottal_selesai", e.target.value)}
+                  />
+                </div>
+              </div>
+              <p className="meta -mt-3">
+                Jendela jam tayang harian mengikuti zona waktu lokasi jadwal.
+                Kosongkan keduanya untuk tayang seharian; rentang lewat tengah
+                malam (mis. 20:00–04:00) didukung. Di luar jendela, teks ayat
+                tetap berputar tanpa suara.
+              </p>
             </div>
           </KartuAdmin>
 

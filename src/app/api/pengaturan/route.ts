@@ -34,6 +34,15 @@ function saklarStrict(nilai: string): HasilPeriksa {
     : { ok: false, pesan: 'Harus "true" atau "false"' };
 }
 
+/** Jam HH:MM atau string kosong (tanpa batas). */
+function jamAtauKosong(nilai: string): HasilPeriksa {
+  const bersih = nilai.trim();
+  if (bersih === "") return { ok: true, nilai: "" };
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(bersih)
+    ? { ok: true, nilai: bersih }
+    : { ok: false, pesan: "Format jam harus HH:MM" };
+}
+
 /** Pemeriksa per kunci. Semua nilai disimpan sebagai teks di database. */
 const PEMERIKSA: Record<KunciPengaturan, (nilai: string) => HasilPeriksa> = {
   lokasi_default: (nilai) => {
@@ -65,6 +74,24 @@ const PEMERIKSA: Record<KunciPengaturan, (nilai: string) => HasilPeriksa> = {
     cariPilihanMurottal(nilai)
       ? { ok: true, nilai }
       : { ok: false, pesan: "Pilihan reciter murottal tidak dikenal" },
+  murottal_jeda_menit: bulatAntara(0, 120),
+  murottal_mulai: jamAtauKosong,
+  murottal_selesai: jamAtauKosong,
+  mode_ayat: (nilai) =>
+    nilai === "pilihan" || nilai === "surah"
+      ? { ok: true, nilai }
+      : { ok: false, pesan: 'Harus "pilihan" atau "surah"' },
+  surah_nomor: (nilai) => {
+    const nomor = Number(nilai);
+    if (!Number.isInteger(nomor) || nomor < 1 || nomor > 114) {
+      return { ok: false, pesan: "Nomor surah harus 1–114" };
+    }
+    return { ok: true, nilai: String(nomor) };
+  },
+  surah_lanjut: (nilai) =>
+    nilai === "ulang" || nilai === "lanjut"
+      ? { ok: true, nilai }
+      : { ok: false, pesan: 'Harus "ulang" atau "lanjut"' },
   adzan_audio_url: (nilai) => {
     const bersih = nilai.trim();
     if (bersih === "") return { ok: true, nilai: "" };

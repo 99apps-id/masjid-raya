@@ -9,6 +9,7 @@ import { ambilProfil } from "@/lib/profil";
 import { getJadwalHarian, kunciTanggal } from "@/lib/prayer-times";
 import { resolveAdzanUrl } from "@/lib/azan";
 import { subdirMurottal } from "@/lib/murottal";
+import { cariSurah } from "@/lib/surah";
 import { ambilAyatAcak } from "@/lib/ayat";
 import { ringkasPapan } from "@/lib/papan";
 import CalligraphyBackdrop from "@/components/CalligraphyBackdrop";
@@ -65,6 +66,11 @@ export default async function Home() {
     hijriahOffsetHari
   );
 
+  // Mode panel ayat: kurasi pilihan (bawaan) atau satu surah penuh.
+  // Pilihan admin di UI menyusul; API dan papan sudah mendukung keduanya.
+  const modeSurah = pengaturan.mode_ayat === "surah";
+  const surah = modeSurah ? cariSurah(Number(pengaturan.surah_nomor)) : null;
+
   return (
     <div className="relative flex flex-1 flex-col">
       <CalligraphyBackdrop />
@@ -90,6 +96,14 @@ export default async function Home() {
           reminderSuara={pengaturanSaklar(pengaturan, "reminder_suara")}
           tampilkanMurottal={pengaturanSaklar(pengaturan, "tampilkan_murottal")}
           murottalReciter={subdirMurottal(pengaturan.murottal_reciter)}
+          surah={surah}
+          surahLanjutOtomatis={pengaturan.surah_lanjut === "lanjut"}
+          murottalJedaMenit={pengaturanAngka(pengaturan, "murottal_jeda_menit", {
+            min: 0,
+            max: 120,
+          })}
+          murottalMulai={pengaturan.murottal_mulai}
+          murottalSelesai={pengaturan.murottal_selesai}
           hijriahOffsetHari={hijriahOffsetHari}
         />
       </div>

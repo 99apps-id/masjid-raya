@@ -441,6 +441,24 @@ export function daftarUrlAudioAyat(
   return daftar;
 }
 
+/**
+ * Daftar putar murottal satu surah penuh: ayat 1 sampai `jumlahAyat`,
+ * semuanya dengan suara reciter yang sama. Dipakai mode surah penuh.
+ */
+export function daftarUrlAudioSurah(
+  surahNomor: number,
+  jumlahAyat: number,
+  subdir: string = SUBDIR_MUROTTAL_BAWAAN
+): string[] {
+  const total = Math.min(Math.max(Math.floor(jumlahAyat), 0), 300);
+  const daftar: string[] = [];
+  for (let n = 1; n <= total; n++) {
+    const berkas = `${tigaDigit(surahNomor)}${tigaDigit(n)}`;
+    daftar.push(`https://everyayah.com/data/${subdir}/${berkas}.mp3`);
+  }
+  return daftar;
+}
+
 /** Ambil sejumlah ayat acak tanpa pengulangan. */
 export function ambilAyatAcak(jumlah: number): Ayat[] {
   const salinan = [...KUMPULAN_AYAT];
