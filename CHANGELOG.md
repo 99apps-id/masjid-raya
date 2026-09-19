@@ -5,6 +5,21 @@ Semua perubahan penting pada proyek ini didokumentasikan di berkas ini.
 Format ini mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 dan proyek ini menggunakan [Semantic Versioning](https://semver.org/lang/id/).
 
+## [0.1.1] - 2026-09-19
+
+### Ditambahkan
+- Suara Adzan khusus Subuh dengan tatswib (*Ash-shalatu khairum minan-naum*), bundel audio bawaan lokal di `public/audio/adzan-subuh.mp3` yang tangguh saat offline.
+- Logika otomatis pemutaran adzan: DisplayBoard secara otomatis memilih audio adzan Subuh khusus saat waktu subuh tiba, dan adzan reguler untuk 4 waktu shalat lainnya.
+- Panel pengaturan admin mandiri untuk Adzan Subuh (`adzan_subuh_pilihan` dan `adzan_subuh_audio_url`) lengkap dengan pratinjau pemutar suara dan unggah berkas kustom.
+- Deteksi lokasi otomatis pengguna berbasis geolokasi/jaringan peramban, dengan fallback default ke Jakarta bila lokasi belum diizinkan atau tidak terdeteksi.
+- Desain identitas visual baru: Ikon aplikasi (favicon) dan lambang masjid profesional berbasis siluet arsitektur kubah ogee, menara kembar, gerbang mihrab, dan ornamen bintang delapan (Khatam), menggantikan ikon generik/AI.
+
+### Diperbaiki
+- Pemutaran surah penuh: seluruh ayat dalam satu surah kini dilantunkan berurutan sampai tuntas sebelum otomatis beralih ke surah berikutnya, tidak lagi berhenti di ayat pertama.
+- Penanganan unhandled rejection `[object Event]` di Next.js devtools saat interaksi audio dihentikan oleh peramban.
+- Tampilan mode layar penuh TV: badge audio dan pengingat disembunyikan agar tampilan papan bersih murni untuk display masjid.
+- Penggantian emoji lonceng mentah pada status pengingat suara dengan `IkonSuara` vektor profesional.
+
 ## [0.1.0] - 2026-09-19
 
 ### Ditambahkan

@@ -6,7 +6,11 @@ import { signOut, useSession } from "next-auth/react";
 import LogoMasjid from "@/components/LogoMasjid";
 import AyatShowcase from "@/components/AyatShowcase";
 import KreditAplikasi from "@/components/KreditAplikasi";
-import { IkonLayarPenuh, IkonKeluarLayarPenuh } from "@/components/Ikon";
+import {
+  IkonLayarPenuh,
+  IkonKeluarLayarPenuh,
+  IkonSuara,
+} from "@/components/Ikon";
 import type { Ayat } from "@/lib/ayat";
 import { cariSurah, type InfoSurah } from "@/lib/surah";
 import { LABEL_ZONA, ZONA_DEFAULT, type Zona } from "@/lib/kota";
@@ -788,8 +792,11 @@ export default function DisplayBoard({
             {(adzanAktif || reminderSuara) && !isFullscreen && (
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-forest-900/10 pt-3">
                 {reminderSuara && (
-                  <span className="text-xs font-medium text-ink-500">
-                    {suaraSiap ? "🔔 Pengingat aktif" : "🔔 Ketuk layar untuk aktifkan suara"}
+                  <span className="inline-flex items-center text-xs font-medium text-ink-500">
+                    <IkonSuara className="inline h-3.5 w-3.5 mr-1.5 text-forest-700" />
+                    {suaraSiap
+                      ? "Pengingat suara aktif"
+                      : "Ketuk layar untuk aktifkan suara"}
                   </span>
                 )}
                 {adzanAktif && (adzanAudioUrl || adzanSubuhAudioUrl) && (
