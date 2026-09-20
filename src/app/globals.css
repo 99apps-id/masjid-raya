@@ -11,6 +11,43 @@
   Nilai ini dipakai halaman terang (beranda papan informasi). Halaman lain tetap
   memakai latar gelap lewat wrapper-nya masing-masing.
 */
+/* Font Arab lokal (self-hosted, subsetted) */
+@font-face {
+  font-family: "Amiri";
+  src: url("/fonts/amiri-400.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Amiri";
+  src: url("/fonts/amiri-700.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Amiri Quran";
+  src: url("/fonts/amiri-quran.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Scheherazade New";
+  src: url("/fonts/scheherazade-400.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Scheherazade New";
+  src: url("/fonts/scheherazade-700.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
   --color-background: #f4faf6;
   --color-foreground: #07231a;
@@ -53,11 +90,11 @@
   /* Judul hero: Marcellus (hanya 400 — jangan dipasangkan font-bold/black). */
   --font-display: var(--font-marcellus), "Marcellus", Georgia, "Times New Roman", serif;
   /* Naskh untuk label Arab pendek: Amiri 700, lalu cadangan jernih. */
-  --font-arabic: var(--font-amiri), "Amiri", var(--font-scheherazade), "Scheherazade New", var(--font-lateef), "Lateef", "Noto Naskh Arabic", serif;
+  --font-arabic: "Amiri", "Scheherazade New", "Lateef", "Noto Naskh Arabic", serif;
   /* Kaligrafi Utsmani untuk ayat: Amiri Quran primer, Scheherazade cadangan harakat. */
-  --font-uthmani: var(--font-uthmani), "Amiri Quran", var(--font-scheherazade), "Scheherazade New", var(--font-amiri), "Amiri", var(--font-lateef), "Lateef", "Noto Naskh Arabic", serif;
+  --font-uthmani: "Amiri Quran", "Scheherazade New", "Amiri", "Lateef", "Noto Naskh Arabic", serif;
   /* Kufi geometris hanya untuk ornamen / watermark, bukan ayat panjang. */
-  --font-kufi: var(--font-kufi), "Reem Kufi", var(--font-amiri), "Amiri", serif;
+  --font-kufi: "Reem Kufi", "Amiri", serif;
 }
 
 html,
