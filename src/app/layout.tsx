@@ -3,11 +3,6 @@ import {
   Inter,
   Plus_Jakarta_Sans,
   Marcellus,
-  Amiri,
-  Amiri_Quran,
-  Scheherazade_New,
-  Reem_Kufi,
-  Lateef,
 } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
@@ -51,37 +46,6 @@ const marcellus = Marcellus({
   display: "swap",
   variable: "--font-marcellus",
 });
-const amiri = Amiri({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  variable: "--font-amiri",
-});
-const amiriQuran = Amiri_Quran({
-  subsets: ["arabic", "latin"],
-  weight: ["400"],
-  display: "swap",
-  variable: "--font-uthmani",
-});
-const scheherazade = Scheherazade_New({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-scheherazade",
-});
-const kufi = Reem_Kufi({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-kufi",
-});
-const lateef = Lateef({
-  subsets: ["arabic", "latin"],
-  weight: ["400"],
-  display: "swap",
-  variable: "--font-lateef",
-});
-
 /**
  * Judul, deskripsi, dan ikon diambil dari profil masjid sehingga pengelola
  * dapat mengganti nama serta favicon tanpa menyentuh kode.
