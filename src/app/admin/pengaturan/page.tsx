@@ -761,8 +761,10 @@ export default function AdminPengaturanPage() {
                   onChange={(e) => ubah("murottal_jeda_menit", e.target.value)}
                 />
                 <p className="meta mt-2">
-                  Murottal berhenti saat adzan lalu lanjut otomatis setelah
-                  jeda ini. Isi 0 untuk lanjut segera setelah adzan selesai.
+                  Murottal dijeda 5 detik sebelum adzan, ditahan selama
+                  adzan + iqomah, lalu lanjut otomatis setelah jeda ini
+                  (isi 30 untuk jeda 30 menit). Isi 0 untuk lanjut segera
+                  setelah masa adzan selesai.
                 </p>
               </div>
 

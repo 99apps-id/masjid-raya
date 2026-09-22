@@ -136,34 +136,26 @@ export default function DisplayBoard({
   // true selama audio adzan benar-benar berbunyi — murottal ditahan
   // (dijeda) selama itu sebagai adab mendengarkan adzan.
   const [adzanBerbunyi, setAdzanBerbunyi] = useState(false);
-  // Tahan lanjutan setelah adzan selesai, selama jeda yang diatur admin.
+  // Tahan lanjutan setelah adzan selesai, selama jeda yang diatur admin
+  // (bawaan 30 menit). Dilepas otomatis lewat timer.
   const [jedaLepasAdzan, setJedaLepasAdzan] = useState(false);
   const timerJedaAdzan = useRef<number | null>(null);
-
-  // Adzan selesai → tahan murottal selama `murottalJedaMenit`, lalu lepas
-  // agar lanjut otomatis. Adzan mulai lagi → batalkan sisa jeda.
-  useEffect(() => {
-    if (adzanBerbunyi) {
-      if (timerJedaAdzan.current !== null) window.clearTimeout(timerJedaAdzan.current);
-      setJedaLepasAdzan(false);
-      return;
-    }
-    if (murottalJedaMenit > 0 && adzanTerakhir.current) {
-      setJedaLepasAdzan(true);
-      if (timerJedaAdzan.current !== null) window.clearTimeout(timerJedaAdzan.current);
-      timerJedaAdzan.current = window.setTimeout(
-        () => setJedaLepasAdzan(false),
-        murottalJedaMenit * 60 * 1000
-      );
-    }
-    return () => {
-      if (timerJedaAdzan.current !== null) window.clearTimeout(timerJedaAdzan.current);
-    };
-  }, [adzanBerbunyi, murottalJedaMenit]);
-
   const nadaTerakhir = useRef<string | null>(null);
   const adzanTerakhir = useRef<string | null>(null);
   const audioAdzan = useRef<HTMLAudioElement | null>(null);
+  // Penanda masa adzan/iqomah yang terakhir terlihat, untuk mendeteksi
+  // momen "baru saja selesai" sebagai pemicu jeda 30 menit.
+  const masaAdzanSebelumnya = useRef<string | null>(null);
+
+  // Bersihkan timer jeda bila komponen dilepas.
+  useEffect(() => {
+    return () => {
+      if (timerJedaAdzan.current !== null) {
+        window.clearTimeout(timerJedaAdzan.current);
+        timerJedaAdzan.current = null;
+      }
+    };
+  }, []);
 
   // Surah yang sedang diputar di mode surah. Maju otomatis 1→114→1 bila
   // opsi lanjut aktif; diselaraskan ulang bila pengaturan admin berubah.
@@ -366,6 +358,62 @@ export default function DisplayBoard({
     ringkasan.hitungMundur != null &&
     ringkasan.hitungMundur > 0 &&
     ringkasan.hitungMundur <= batasReminder;
+
+  // Adab adzan untuk murottal:
+  // - Jeda 5 detik sebelum adzan tiba (antisipasi agar tidak bertabrakan
+  //   dengan awal audio adzan akibat drift detik/jadwal).
+  // - Tahan selama masa adzan + iqomah (`iqomahKey` non-null).
+  // - Tahan lanjutan 30 menit (mengikuti `murottalJedaMenit`) setelah masa
+  //   adzan/iqomah dan audio adzan benar-benar selesai, lalu play kembali.
+  const PRA_ADZAN_DETIK = 5;
+  const praAdzan =
+    ringkasan.hitungMundur != null &&
+    ringkasan.hitungMundur > 0 &&
+    ringkasan.hitungMundur <= PRA_ADZAN_DETIK;
+  const masaAdzanIqomah = ringkasan.iqomahKey != null;
+
+  // Transisi masa adzan/iqomah → selesai: mulai timer jeda pasca-adzan.
+  // Selama masa adzan/iqomah atau audio adzan berbunyi: batalkan timer dan
+  // tahan (tanpa jeda) agar tidak ada celah murottal sempat menyela.
+  useEffect(() => {
+    const kunciMasa = ringkasan.iqomahKey;
+    if (kunciMasa || adzanBerbunyi) {
+      if (kunciMasa) masaAdzanSebelumnya.current = kunciMasa;
+      if (timerJedaAdzan.current !== null) {
+        window.clearTimeout(timerJedaAdzan.current);
+        timerJedaAdzan.current = null;
+      }
+      setJedaLepasAdzan(false);
+      return;
+    }
+    // Sampai di sini: tidak ada adzan berbunyi dan tidak dalam masa iqomah.
+    // Hanya mulai jeda bila baru saja keluar dari masa adzan/iqomah.
+    if (masaAdzanSebelumnya.current) {
+      masaAdzanSebelumnya.current = null;
+      if (murottalJedaMenit > 0) {
+        setJedaLepasAdzan(true);
+        if (timerJedaAdzan.current !== null) {
+          window.clearTimeout(timerJedaAdzan.current);
+        }
+        timerJedaAdzan.current = window.setTimeout(() => {
+          setJedaLepasAdzan(false);
+          timerJedaAdzan.current = null;
+        }, murottalJedaMenit * 60 * 1000);
+      } else {
+        setJedaLepasAdzan(false);
+      }
+    }
+  }, [ringkasan.iqomahKey, adzanBerbunyi, murottalJedaMenit]);
+
+  const tahanMurottalAdzan =
+    adzanBerbunyi ||
+    jedaLepasAdzan ||
+    praAdzan ||
+    masaAdzanIqomah ||
+    // Jembatan antar-render: saat masa adzan baru saja selesai, ref masih
+    // menyimpan kunci terakhir sampai efek di atas menaikkan `jedaLepasAdzan`.
+    // Tanpa ini ada celah 1 render di mana murottal sempat menyela.
+    masaAdzanSebelumnya.current != null;
 
   // Mengaktifkan audio dengan interaksi pengguna
   useEffect(() => {
@@ -674,7 +722,7 @@ export default function DisplayBoard({
             surah={surahAktif}
             lanjutKeSurahBerikut={surahLanjutOtomatis}
             onSurahBerikutnya={majuSurahBerikutnya}
-            tahanMurottal={adzanBerbunyi || jedaLepasAdzan}
+            tahanMurottal={tahanMurottalAdzan}
             ringkas={isFullscreen}
           />
         </section>
